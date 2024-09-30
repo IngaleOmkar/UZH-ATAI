@@ -32,6 +32,7 @@ class Agent:
                         f"- {self.get_time()}")
 
                     # Implement your agent here #
+                    
 
                     # Send a message to the corresponding chat room using the post_messages method of the room object.
                     room.post_messages(f"Received your message: '{message.message}' ")
@@ -59,5 +60,5 @@ class Agent:
 
 
 if __name__ == '__main__':
-    demo_bot = Agent("bot_name", "bot_pass")
+    demo_bot = Agent("sharp-cloud", "Q1jeQ8I2")
     demo_bot.listen()
