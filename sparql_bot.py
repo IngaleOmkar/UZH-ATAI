@@ -1,11 +1,7 @@
 from speakeasypy import Speakeasy, Chatroom
 from typing import List
 import time
-
-from SPARQLWrapper import SPARQLWrapper, JSON
-
-sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
-sparql.setReturnFormat(JSON)
+from graph import Graph
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -16,6 +12,7 @@ class Agent:
         # Initialize the Speakeasy Python framework and login.
         self.speakeasy = Speakeasy(host=DEFAULT_HOST_URL, username=username, password=password)
         self.speakeasy.login()  # This framework will help you log out automatically when the program terminates.
+        self.graph = Graph('14_graph.nt')
 
     def listen(self):
         while True:
@@ -35,17 +32,21 @@ class Agent:
                         f"- new message #{message.ordinal}: '{message.message}' "
                         f"- {self.get_time()}")
 
-                    # Implement your agent here #
-                    sparql.setQuery(
-                        message.message
-                    )
-
                     # Send a message to the corresponding chat room using the post_messages method of the room object.
                     try:
-                        ret = sparql.queryAndConvert()
+                        result = self.graph.query(message.message)
+                        query_ans = ""
+                        for i in result:
+                            query_ans += i + "\n"
+                        
+                        # ensure query_ans is utf-8 encoded
+                        query_ans = str(str(query_ans).encode('utf-8'))
 
-                        room.post_messages(ret["results"])
+                        room.post_messages(query_ans)
+
+
                     except Exception as e:
+                        room.post_messages(f"An error occurred: {e}")
                         print(e)
 
                     # Mark the message as processed, so it will be filtered out when retrieving new messages.
