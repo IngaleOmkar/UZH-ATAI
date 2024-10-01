@@ -35,14 +35,8 @@ class Agent:
                     # Send a message to the corresponding chat room using the post_messages method of the room object.
                     try:
                         result = self.graph.query(message.message)
-                        query_ans = ""
-                        for i in result:
-                            query_ans += i + "\n"
-                        
-                        # ensure query_ans is utf-8 encoded
-                        query_ans = str(str(query_ans).encode('utf-8'))
 
-                        room.post_messages(query_ans)
+                        room.post_messages(result)
 
 
                     except Exception as e:

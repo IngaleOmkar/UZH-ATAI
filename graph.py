@@ -23,11 +23,19 @@ class Graph:
         self.graph.parse(file_name, format='turtle')
     
     def query(self, q):
-        result = self.graph.query(q)
+        q_result = self.graph.query(q)
+        q_result = DataFrame(q_result,columns=q_result.vars)
+        print(f"q_result: {q_result}")
+        lens = q_result.shape[0]
+        items = q_result.iloc[:,0].tolist()
+        if lens > 1:
+            last_item = items.pop()
+            result = ', '.join(items) + ' and ' + last_item
+        elif items:
+                result = items[0]
+        else:
+            result = None
 
-        ans = [str(s) for s, in result]
-
-        
-        return ans
+        return str(result.encode('utf-8'))
 
     
