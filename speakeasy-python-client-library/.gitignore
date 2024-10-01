@@ -1,6 +1,8 @@
 
 .DS_Store
 .idea/
+14_graph.nt
+plots.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
