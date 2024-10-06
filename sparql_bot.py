@@ -1,18 +1,21 @@
 from speakeasypy import Speakeasy, Chatroom
 from typing import List
 import time
-from graph import Graph
+import rdflib
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
 
 class Agent:
     def __init__(self, username, password):
+        path = '14_graph.nt'
+        self.graph = rdflib.Graph()
+        self.graph.parse(path, format="turtle")
+
         self.username = username
         # Initialize the Speakeasy Python framework and login.
         self.speakeasy = Speakeasy(host=DEFAULT_HOST_URL, username=username, password=password)
         self.speakeasy.login()  # This framework will help you log out automatically when the program terminates.
-        self.graph = Graph('14_graph.nt')
 
     def listen(self):
         while True:
@@ -35,9 +38,8 @@ class Agent:
                     # Send a message to the corresponding chat room using the post_messages method of the room object.
                     try:
                         result = self.graph.query(message.message)
-
-                        room.post_messages(result)
-
+                        result_list = [str(s[0]) for s in result]
+                        room.post_messages(str(result_list))
 
                     except Exception as e:
                         room.post_messages(f"An error occurred: {e}")
