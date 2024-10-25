@@ -25,3 +25,10 @@ factual/results/checkpoint-33/rng_state.pth
 factual/results/checkpoint-33/scheduler.pt
 factual/results/checkpoint-33/trainer_state.json
 factual/results/checkpoint-33/training_args.bin
+Embeddings/ddis-graph-embeddings/assignment.html
+Embeddings/ddis-graph-embeddings/assignment.ipynb
+Embeddings/ddis-graph-embeddings/entity_embeds.npy
+Embeddings/ddis-graph-embeddings/entity_ids.del
+Embeddings/ddis-graph-embeddings/README.md
+Embeddings/ddis-graph-embeddings/relation_embeds.npy
+Embeddings/ddis-graph-embeddings/relation_ids.del
