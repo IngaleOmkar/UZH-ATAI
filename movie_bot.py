@@ -1,9 +1,12 @@
 from speakeasypy import Speakeasy, Chatroom
 from typing import List
 import time
-from embeddings import Embeddings
+from embeddings import EmbeddingsResponder
 from entity_extraction import Extractor
-from factual import Factual
+from factual import FactualResponder
+from data_repository import DataRepository
+from intent_classifier import IntentClassifier
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -11,9 +14,11 @@ listen_freq = 2
 class Agent:
     def __init__(self, username, password):
 
+        self.data_repository = DataRepository()
+        self.intent_classifier = IntentClassifier(self.data_repository)
         self.extractor = Extractor()
-        self.embeddings = Embeddings()
-        self.factual = Factual()
+        self.embeddings = EmbeddingsResponder(self.data_repository, self.extractor, self.intent_classifier)
+        self.factual = FactualResponder(self.data_repository, self.extractor, self.intent_classifier)
 
         self.username = username
         # Initialize the Speakeasy Python framework and login.
@@ -65,28 +70,68 @@ class Agent:
 
             time.sleep(listen_freq)
 
-    def answer(self, nl_query):
-        entities, predicates = self.extractor.extract_all(nl_query)
-        print(entities, predicates)
+    def answer(self, query):
+        results = {}
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            factual_thread = executor.submit(self.answer_factual, query)
+            embedding_thread = executor.submit(self.answer_embedding, query)
 
-        try:
-            result = self.answer_factual(nl_query, entities, predicates)
-            return f"The answer is: {result}"
-        except Exception as e:
-            try:
-                results = self.answer_embedding(entities, predicates)
-                return f"The 3 most likely answers inferred by the embedding: {results}"
-            except Exception as e:
-                return "I am very sorry, but no answer was found."
+            futures = {
+                executor.submit(self.answer_factual, query): "factual",
+                executor.submit(self.answer_embedding, query): "embedding"
+            }
 
+            for future in as_completed(futures):
+                answer_type =  futures[future]
+                try:
+                    result = future.result()
+                    results[answer_type] = result
+                except:
+                    results[answer_type] = "None"
         
-    def answer_factual(self, query, entities, predicates):
-        status, results = self.factual.answer_query(query, entities, predicates)
-        return status, results
+        answer_factual = results["factual"]
+        answer_embedding = results["embedding"]
 
-    def answer_embedding(self, entities, predicates):
-        results = self.embeddings.find(entities[0], predicates[0])
-        return results
+        answer_string = ""
+
+        if answer_factual != "None":
+            answer_string += f"I think the answer is {answer_factual} (factual)"
+        if answer_embedding != "None":
+            answer_string += f"I think the answer is {answer_embedding} (embedding)"
+        
+        return answer_string
+
+
+        # factual_thread = Thread(target=self.answer_factual, args=(query,))
+        # embedding_thread = Thread(target=self.answer_embedding, args=(query,))
+
+        # factual_thread.start()
+        # embedding_thread.start()
+
+        # factual_thread.join()
+        # embedding_thread.join()
+
+        # answer_factual = factual_thread.result
+        # answer_embedding = embedding_thread.result
+
+        # if answer_factual is not None:
+        #     return f"I think the answer is {answer_factual} (factual)"
+        # else:
+        #     return f"I think the answer is {answer_embedding} (embedding)"
+        
+    def answer_factual(self, query):
+        try:
+            results = self.factual.answer_query(query)
+            return results
+        except Exception as e:
+            return "I am very sorry, but no answer was found."
+
+    def answer_embedding(self, query):
+        try:
+            results = self.embeddings.answer_query(query)
+            return results
+        except Exception as e:
+            return "I am very sorry, but no answer was found."
         
 
     @staticmethod
