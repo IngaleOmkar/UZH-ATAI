@@ -33,3 +33,6 @@ Embeddings/ddis-graph-embeddings/README.md
 Embeddings/ddis-graph-embeddings/relation_embeds.npy
 Embeddings/ddis-graph-embeddings/relation_ids.del
 models/*
+data/*
+.gitignore
+.gitignore

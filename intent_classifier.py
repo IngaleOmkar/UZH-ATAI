@@ -4,7 +4,7 @@ from transformers import BertForSequenceClassification, BertTokenizer
 
 class IntentClassifier:
     def __init__(self, data_repository):
-        self.model = BertForSequenceClassification.from_pretrained("factual/movie_tag_model")
+        self.model = BertForSequenceClassification.from_pretrained("data/movie_tag_model")
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         self.data_repository = data_repository
 

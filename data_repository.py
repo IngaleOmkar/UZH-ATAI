@@ -19,21 +19,21 @@ class DataRepository:
 
         # Loading graph
         print("========== Loading graph ==========")
-        self.graph = rdflib.Graph().parse('14_graph.nt', format='turtle')
+        self.graph = rdflib.Graph().parse('data/14_graph.nt', format='turtle')
 
         print("========== Loading data for factual QA ==========")
-        self.triplets, self.uri_to_label, self.label_to_uri, self.label_list = pickle.load(open("factual/formatted_data.pkl", "rb"))
-        with open('factual/id2tag.json') as json_file:
+        self.triplets, self.uri_to_label, self.label_to_uri, self.label_list = pickle.load(open("data/formatted_data.pkl", "rb"))
+        with open('data/id2tag.json') as json_file:
             self.id2label = json.load(json_file)
 
         print("========== Loading data for embeddings ==========")
-        self.entity_emb = np.load('Embeddings/ddis-graph-embeddings/entity_embeds.npy')
-        self.relation_emb = np.load('Embeddings/ddis-graph-embeddings/relation_embeds.npy')
+        self.entity_emb = np.load('data/entity_embeds.npy')
+        self.relation_emb = np.load('data/relation_embeds.npy')
 
-        with open('Embeddings/ddis-graph-embeddings/entity_ids.del', 'r') as ifile:
+        with open('data/entity_ids.del', 'r') as ifile:
             self.ent2id = {rdflib.term.URIRef(ent): int(idx) for idx, ent in csv.reader(ifile, delimiter='\t')}
             self.id2ent = {v: k for k, v in self.ent2id.items()}
-        with open('Embeddings/ddis-graph-embeddings/relation_ids.del', 'r') as ifile:
+        with open('data/relation_ids.del', 'r') as ifile:
             self.rel2id = {rdflib.term.URIRef(rel): int(idx) for idx, rel in csv.reader(ifile, delimiter='\t')}
             self.id2rel = {v: k for k, v in self.rel2id.items()}
 

@@ -73,8 +73,6 @@ class Agent:
     def answer(self, query):
         results = {}
         with ThreadPoolExecutor(max_workers=2) as executor:
-            factual_thread = executor.submit(self.answer_factual, query)
-            embedding_thread = executor.submit(self.answer_embedding, query)
 
             futures = {
                 executor.submit(self.answer_factual, query): "factual",
@@ -101,23 +99,6 @@ class Agent:
         
         return answer_string
 
-
-        # factual_thread = Thread(target=self.answer_factual, args=(query,))
-        # embedding_thread = Thread(target=self.answer_embedding, args=(query,))
-
-        # factual_thread.start()
-        # embedding_thread.start()
-
-        # factual_thread.join()
-        # embedding_thread.join()
-
-        # answer_factual = factual_thread.result
-        # answer_embedding = embedding_thread.result
-
-        # if answer_factual is not None:
-        #     return f"I think the answer is {answer_factual} (factual)"
-        # else:
-        #     return f"I think the answer is {answer_embedding} (embedding)"
         
     def answer_factual(self, query):
         try:
