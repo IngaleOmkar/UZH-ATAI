@@ -4,6 +4,7 @@ import numpy as np
 import os
 import rdflib
 import csv
+import torch
 
 class DataRepository:
     def __init__(self):
@@ -16,6 +17,13 @@ class DataRepository:
         self.SCHEMA = rdflib.Namespace('http://schema.org/')
 
         print("========== Initializing Data Repository ==========")
+
+        print("========== Loading NER Embeddings ==========")
+
+        with open('data/embeddings_and_entities.pkl', 'rb') as f:
+            self.ner_embeddings, self.ner_entities_list = pickle.load(f)
+        
+        self.torch_ner_model = torch.load('data/ner_embedding_model.pt')
 
         # Loading graph
         print("========== Loading graph ==========")
@@ -44,6 +52,15 @@ class DataRepository:
         self.lbl2rel = {lbl: rel for rel, lbl in self.rel2lbl.items()}
 
         print("========== Data Repository initialized ==========")
+
+    def get_ner_embeddings(self):
+        return self.ner_embeddings
+    
+    def get_ner_entities_list(self):
+        return self.ner_entities_list
+    
+    def get_torch_ner_model(self):
+        return self.torch_ner_model
 
     def get_graph(self):
         return self.graph

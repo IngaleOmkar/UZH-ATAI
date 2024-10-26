@@ -16,7 +16,7 @@ class Agent:
 
         self.data_repository = DataRepository()
         self.intent_classifier = IntentClassifier(self.data_repository)
-        self.extractor = Extractor()
+        self.extractor = Extractor(self.data_repository)
         self.embeddings = EmbeddingsResponder(self.data_repository, self.extractor, self.intent_classifier)
         self.factual = FactualResponder(self.data_repository, self.extractor, self.intent_classifier)
 

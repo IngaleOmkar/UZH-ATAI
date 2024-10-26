@@ -11,7 +11,8 @@ class FactualResponder(Responder):
     def answer_query(self, query):
         # Classify the query
         tag, uri = self.intent_classifier.classify_query(query)
-        entities = [re.sub(r'\s([:!?,.])', r'\1', entity) for entity in self.entity_extractor.extract_ner(query)]
+        #entities = [re.sub(r'\s([:!?,.])', r'\1', entity) for entity in self.entity_extractor.extract_ner(query)]
+        entities = self.entity_extractor.get_guaranteed_entities(query)
 
         if(len(entities) == 0):
             raise Exception("I'm sorry, I couldn't understand the query.")
