@@ -1,10 +1,6 @@
 # imports
-import numpy as np
 from sklearn.metrics import pairwise_distances
 from responder import Responder
-from scipy.spatial.distance import cosine
-from nltk.corpus import stopwords
-import re
 
 class EmbeddingsResponder(Responder):
     def __init__(self, data_repository, entity_extractor, intent_classifier, emb_intent_classifier):
