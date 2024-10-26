@@ -5,6 +5,7 @@ import os
 import rdflib
 from sklearn.metrics import pairwise_distances
 from responder import Responder
+from entity_extraction import Extractor
 
 class EmbeddingsResponder(Responder):
     def __init__(self, data_repository, entity_extractor, intent_classifier):
@@ -21,6 +22,8 @@ class EmbeddingsResponder(Responder):
         self.lbl2ent = self.data_repository.get_lbl2ent()
         self.rel2lbl = self.data_repository.get_rel2lbl()
         self.lbl2rel = self.data_repository.get_lbl2rel()
+
+        self.extractor = Extractor()
 
     
     def answer_query(self, query):
