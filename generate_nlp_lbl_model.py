@@ -15,14 +15,13 @@ for key, value in loaded_examples_dict.items():
     if isinstance(value, list):
         positive_examples.append(InputExample(texts=[key] + value, label=1.0)) 
 
-
 train_dataloader = DataLoader(positive_examples, shuffle=True, batch_size=4)
 
 # Use a contrastive loss function to train on the pairs
 train_loss = losses.CosineSimilarityLoss(model)
 
 # Fine-tune the model with a few epochs (e.g., 1-3)
-model.fit(train_objectives=[(train_dataloader, train_loss)], epochs=1)
+model.fit(train_objectives=[(train_dataloader, train_loss)], epochs=3)
 
 # Save the fine-tuned model for later use
 model.save("data/lbl_nlp_embeddings_model")

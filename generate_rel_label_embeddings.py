@@ -22,7 +22,7 @@ rel2lbl = {rel: str(lbl) for rel, lbl in graph.subject_objects(RDFS.label) if st
 lbl2rel = {lbl: rel for rel, lbl in rel2lbl.items()}
 
 # Initialize the model and tokenizer
-model = SentenceTransformer('data/lbl_nlp_embeddings_model')
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Function to get the embedding for a given text
 def get_embedding(text):

@@ -20,7 +20,7 @@ class Agent:
         self.emb_intent_classifier = EmbeddingBasedIntentClassifier(self.data_repository)
 
         self.extractor = Extractor(self.data_repository)
-        self.embeddings = EmbeddingsResponder(self.data_repository, self.extractor, self.mlp_intent_classifier)
+        self.embeddings = EmbeddingsResponder(self.data_repository, self.extractor, self.mlp_intent_classifier, self.emb_intent_classifier)
         self.factual = FactualResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier, emb_intent_classifier = self.emb_intent_classifier)
 
         self.username = username
@@ -97,8 +97,10 @@ class Agent:
 
         if answer_factual != "None":
             answer_string += f"I think the answer is {answer_factual} (factual)"
-        if answer_embedding != "None":
+        elif answer_embedding != "None":
             answer_string += f"I think the answer is {answer_embedding} (embedding)"
+        else:
+            answer_string = "No answer was found."
         
         return answer_string
 
