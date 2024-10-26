@@ -43,6 +43,9 @@ class DataRepository:
         self.rel2lbl = {rel: str(lbl) for rel, lbl in self.graph.subject_objects(self.RDFS.label) if str(rel).startswith(self.WDT)}
         self.lbl2rel = {lbl: rel for rel, lbl in self.rel2lbl.items()}
 
+        with open("data/rel_nlp_embeddings.json", "r") as f:
+            self.rel_lbl_emb = {key: np.array(embedding) for key, embedding in json.load(f).items()}
+
         print("========== Data Repository initialized ==========")
 
     def get_graph(self):
@@ -92,3 +95,6 @@ class DataRepository:
     
     def get_lbl2rel(self):
         return self.lbl2rel
+    
+    def get_rel_lbl_emb(self):
+        return self.rel_lbl_emb
