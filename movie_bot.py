@@ -5,7 +5,7 @@ from embeddings import EmbeddingsResponder
 from entity_extraction import Extractor
 from factual import FactualResponder
 from data_repository import DataRepository
-from intent_classifier import IntentClassifier
+from intent_classifier import IntentClassifier, MLPIntentClassifier, EmbeddingIntentClassifier
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
@@ -15,10 +15,13 @@ class Agent:
     def __init__(self, username, password):
 
         self.data_repository = DataRepository()
-        self.intent_classifier = IntentClassifier(self.data_repository)
+        
+        self.mlp_intent_classifier = MLPIntentClassifier(self.data_repository)
+        self.emb_intent_classifier = EmbeddingIntentClassifier(self.data_repository)
+
         self.extractor = Extractor(self.data_repository)
-        self.embeddings = EmbeddingsResponder(self.data_repository, self.extractor, self.intent_classifier)
-        self.factual = FactualResponder(self.data_repository, self.extractor, self.intent_classifier)
+        self.embeddings = EmbeddingsResponder(self.data_repository, self.extractor, self.mlp_intent_classifier)
+        self.factual = FactualResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier, emb_intent_classifier = self.emb_intent_classifier)
 
         self.username = username
         # Initialize the Speakeasy Python framework and login.
