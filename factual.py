@@ -1,5 +1,6 @@
 from responder import Responder
 import re
+from intent_classifier import EmbeddingBasedIntentClassifier
 
 class FactualResponder(Responder):
     def __init__(self, data_repository, entity_extractor, intent_classifier):
@@ -8,11 +9,21 @@ class FactualResponder(Responder):
         self.triplets = self.data_repository.get_triplets()
         self.uri_to_label = self.data_repository.get_uri_to_label()
 
+        self.split = False
+
+        if(type(self.intent_classifier) == EmbeddingBasedIntentClassifier):
+            self.split = True
+
+
     def answer_query(self, query):
-        # Classify the query
-        tag, uri = self.intent_classifier.classify_query(query)
-        #entities = [re.sub(r'\s([:!?,.])', r'\1', entity) for entity in self.entity_extractor.extract_ner(query)]
         entities = self.entity_extractor.get_guaranteed_entities(query)
+
+        if(not self.split):
+            # Classify the query
+            tag, uri = self.intent_classifier.classify_query(query)
+        else:
+            tag, uri = self.intent_classifier.classify_query(" ".join(query.split(entities[0])))
+            print(tag, uri)
 
         if(len(entities) == 0):
             raise Exception("I'm sorry, I couldn't understand the query.")
