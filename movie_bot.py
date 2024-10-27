@@ -7,6 +7,7 @@ from factual import FactualResponder
 from data_repository import DataRepository
 from intent_classifier import IntentClassifier, MLPBasedIntentClassifier, EmbeddingBasedIntentClassifier
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from embeddings2 import EmbeddingsResponder2
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -20,7 +21,7 @@ class Agent:
         self.emb_intent_classifier = EmbeddingBasedIntentClassifier(self.data_repository)
 
         self.extractor = Extractor(self.data_repository)
-        self.embeddings = EmbeddingsResponder(self.data_repository, self.extractor, self.mlp_intent_classifier, self.emb_intent_classifier)
+        self.embeddings = EmbeddingsResponder2(self.data_repository, self.extractor, self.mlp_intent_classifier, self.emb_intent_classifier)
         self.factual = FactualResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier, emb_intent_classifier = self.emb_intent_classifier)
 
         self.username = username
@@ -95,13 +96,13 @@ class Agent:
 
         answer_string = ""
 
-        if answer_factual != "None":
+        if "very sorry" not in answer_factual:
             # encode the answer in utf-8 to avoid encoding issues
             if(type(answer_factual) == list):
                 answer_factual = " ".join(answer_factual)
             answer_factual = answer_factual.encode('utf-8')
             answer_string += f"I think the answer is {answer_factual} (factual)"
-        elif answer_embedding != "None":
+        elif "very sorry" not in answer_embedding:
             answer_string += f"I think the answer is {answer_embedding} (embedding)"
         else:
             answer_string = "No answer was found."
