@@ -96,6 +96,10 @@ class Agent:
         answer_string = ""
 
         if answer_factual != "None":
+            # encode the answer in utf-8 to avoid encoding issues
+            if(type(answer_factual) == list):
+                answer_factual = " ".join(answer_factual)
+            answer_factual = answer_factual.encode('utf-8')
             answer_string += f"I think the answer is {answer_factual} (factual)"
         elif answer_embedding != "None":
             answer_string += f"I think the answer is {answer_embedding} (embedding)"
