@@ -1,8 +1,10 @@
-# imports
 from sklearn.metrics import pairwise_distances
 from responder import Responder
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 class EmbeddingsResponder(Responder):
+
     def __init__(self, data_repository, entity_extractor, intent_classifier, emb_intent_classifier):
         super().__init__(data_repository, entity_extractor, intent_classifier)
 
@@ -20,7 +22,8 @@ class EmbeddingsResponder(Responder):
         self.intent_classifier = intent_classifier
         self.extractor = entity_extractor
         self.emb_intent_classifier = emb_intent_classifier
-
+        
+    
     def get_rel_vec(self, rel_label):
         if (rel_label not in self.lbl2rel):
             raise Exception("Not found.")
@@ -33,7 +36,7 @@ class EmbeddingsResponder(Responder):
         rel_id = self.rel2id[rel]        
         rel_vec = self.relation_emb[rel_id]
         return rel_vec
-
+    
     def get_ent_vec(self, ent_label):
         if (ent_label not in self.lbl2ent):
             raise Exception("Not found.")
@@ -47,64 +50,38 @@ class EmbeddingsResponder(Responder):
 
         ent_vec = self.entity_emb[ent_id]
         return ent_vec
-
-    def answer_query(self, query):
-        try: 
-
-            entities, predicates = self.entity_extractor.extract_all(query)
-
-            vectors = []
-
-            for ent in entities:
-                query = query.replace(ent, "")
-
-            rel_emb, dist_emb = self.emb_intent_classifier.classify_query(query)
-            rel_mlp, dist_mlp = self.intent_classifier.classify_query(query)
-
-            try:
-                rel_mlp_vec = self.get_rel_vec(rel_mlp)
-            except Exception as e:
-                dist_mlp = float("inf")
-
-            try:
-                rel_emb_vec = self.get_rel_vec(rel_emb)
-            except Exception as e:
-                dist_emb = float("inf")
-
-            if (dist_mlp != float("inf") or dist_emb != float("inf")):
-                if (dist_emb < dist_mlp):
-                    vectors.append(rel_emb_vec)
-                else:
-                    vectors.append(rel_mlp_vec)
-
-            
-            if (len(entities) == 0):
-                raise Exception("Answer not found.")
-            
-            ent_vec = self.get_ent_vec(entities[0])
-
-            vectors.append(ent_vec)
-
-            lhs = sum(vectors)
-            dist = pairwise_distances(lhs.reshape(1, -1), self.entity_emb).reshape(-1)
-            most_likely = dist.argsort()
-
-            most_likely = most_likely[:3]
-
-            most_likely_labels = []
-
-            for x in most_likely:
-                if (x in self.id2ent):
-                    most_likely_labels.append(self.ent2lbl[self.id2ent[x]])
-                elif (x in self.id2rel):
-                    most_likely_labels.append(self.rel2lbl[self.id2rel[x]])
-                else:
-                    raise KeyError("Not found.")
-
-            print(most_likely_labels)
-
-            return most_likely_labels
-        
-        except Exception as e:
-            raise Exception(e)
     
+    def answer_query(self, query):
+        entities = self.entity_extractor.get_guaranteed_entities(query)
+
+
+        tag_mlp, uri_mlp = self.intent_classifier.classify_query(query)
+        tag_emb, uri_emb = self.emb_intent_classifier.classify_query(" ".join(query.split(entities[0])))
+
+
+        if(len(entities) == 0):
+            raise Exception("I'm sorry, I couldn't understand the query.")
+        else:
+            # en_uri = self.label_to_uri[entities[0]]
+
+            entity_vec = self.get_ent_vec(entities[0])
+
+            try:
+                rel_emb_emb = self.get_rel_vec(tag_emb)
+                emb_sum = entity_vec + rel_emb_emb
+
+                # find the closest entity 
+                idx = np.argmin(pairwise_distances(emb_sum.reshape(1, -1), self.entity_emb))
+                return self.ent2lbl[self.id2ent[idx]]
+
+            except:
+                try:
+                    rel_emb_mlp = self.get_rel_vec(tag_mlp)
+                    emb_sum = entity_vec + rel_emb_mlp
+
+                    # find the closest entity
+                    idx = np.argmin(pairwise_distances(emb_sum.reshape(1, -1), self.entity_emb))
+                    return self.ent2lbl[self.id2ent[idx]]
+                except:
+                    raise Exception("I'm sorry, I couldn't find the answer to your question.")
+

@@ -1,6 +1,4 @@
 from responder import Responder
-import re
-from intent_classifier import EmbeddingBasedIntentClassifier
 
 class FactualResponder(Responder):
     def __init__(self, data_repository, entity_extractor, mlp_intent_classifier, emb_intent_classifier):
