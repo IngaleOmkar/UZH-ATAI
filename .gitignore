@@ -34,5 +34,6 @@ Embeddings/ddis-graph-embeddings/relation_embeds.npy
 Embeddings/ddis-graph-embeddings/relation_ids.del
 models/*
 data/*
+.DS_Store
 .gitignore
 .gitignore
