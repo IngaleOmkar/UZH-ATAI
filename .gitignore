@@ -37,3 +37,5 @@ data/*
 .DS_Store
 .gitignore
 .gitignore
+results/
+__pycache__/

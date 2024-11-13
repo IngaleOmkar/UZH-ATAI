@@ -8,6 +8,8 @@ from data_repository import DataRepository
 from intent_classifier import IntentClassifier, MLPBasedIntentClassifier, EmbeddingBasedIntentClassifier
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from embeddings import EmbeddingsResponder
+from recommender import RecommendationResponder
+from question_classifier import QuestionClassifier
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -23,6 +25,8 @@ class Agent:
         self.extractor = Extractor(self.data_repository)
         self.embeddings = EmbeddingsResponder(self.data_repository, self.extractor, self.mlp_intent_classifier, self.emb_intent_classifier)
         self.factual = FactualResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier, emb_intent_classifier = self.emb_intent_classifier)
+        self.recommender = RecommendationResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier)
+        self.question_classifier = QuestionClassifier()
 
         self.username = username
         # Initialize the Speakeasy Python framework and login.
@@ -76,39 +80,68 @@ class Agent:
 
     def answer(self, query):
         results = {}
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        query_type = self.question_classifier.classify(query)
+        if query_type == "recommendation":
+            return self.answer_recommendation(query)
+        else:
+            with ThreadPoolExecutor(max_workers=2) as executor:
 
-            futures = {
-                executor.submit(self.answer_factual, query): "factual",
-                executor.submit(self.answer_embedding, query): "embedding"
-            }
+                futures = {
+                    executor.submit(self.answer_factual, query): "factual",
+                    executor.submit(self.answer_embedding, query): "embedding"
+                }
 
-            for future in as_completed(futures):
-                answer_type =  futures[future]
-                try:
-                    result = future.result()
-                    results[answer_type] = result
-                except:
-                    results[answer_type] = "None"
-        
-        answer_factual = results["factual"]
-        answer_embedding = results["embedding"]
+                for future in as_completed(futures):
+                    answer_type =  futures[future]
+                    try:
+                        result = future.result()
+                        results[answer_type] = result
+                    except:
+                        results[answer_type] = "None"
+            
+            answer_factual = results["factual"]
+            answer_embedding = results["embedding"]
 
+            answer_string = ""
+
+            if "very sorry" not in answer_factual:
+                # encode the answer in utf-8 to avoid encoding issues
+                if(type(answer_factual) == list):
+                    answer_factual = " ".join(answer_factual)
+                answer_factual = answer_factual.encode('utf-8')
+                answer_string += f"I think the answer is {answer_factual} (factual)"
+            elif "very sorry" not in answer_embedding:
+                answer_string += f"I think the answer is {answer_embedding} (embedding)"
+            else:
+                answer_string = "No answer was found."
+            
+            return answer_string
+
+    def answer_recommendation(self, query):
         answer_string = ""
 
-        if "very sorry" not in answer_factual:
-            # encode the answer in utf-8 to avoid encoding issues
-            if(type(answer_factual) == list):
-                answer_factual = " ".join(answer_factual)
-            answer_factual = answer_factual.encode('utf-8')
-            answer_string += f"I think the answer is {answer_factual} (factual)"
-        elif "very sorry" not in answer_embedding:
-            answer_string += f"I think the answer is {answer_embedding} (embedding)"
-        else:
-            answer_string = "No answer was found."
+        try:
+            results = self.recommender.answer_query(query)
+            answer_string += "I think you might like "
+            answer_string += self.array_to_sentence(results)
+            answer_string += "."
+        except Exception as e:
+            print(e)
+            answer_string = "I am sorry, I cannot answer your question."
+
+        print(answer_string)
         
         return answer_string
-
+    
+    def array_to_sentence(self, arr):
+        if not arr:
+            return ""
+        elif len(arr) == 1:
+            return arr[0]
+        elif len(arr) == 2:
+            return " and ".join(arr)
+        else:
+            return ", ".join(arr[:-1]) + ", and " + arr[-1]
         
     def answer_factual(self, query):
         try:

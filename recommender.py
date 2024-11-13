@@ -3,9 +3,10 @@ from responder import Responder
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-class Recommender():
+class RecommendationResponder(Responder):
         
-    def __init__(self, data_repository, entity_extractor):
+    def __init__(self, data_repository, entity_extractor, mlp_intent_classifier):
+        super().__init__(data_repository, entity_extractor, mlp_intent_classifier)
         self.data_repository = data_repository
         self.entity_extractor = entity_extractor
         self.graph = self.data_repository.get_graph()
