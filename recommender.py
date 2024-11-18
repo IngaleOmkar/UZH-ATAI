@@ -2,6 +2,7 @@ from sklearn.metrics import pairwise_distances
 from responder import Responder
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+from fuzzywuzzy import process
 
 class RecommendationResponder(Responder):
         
@@ -20,6 +21,8 @@ class RecommendationResponder(Responder):
         self.lbl2ent = self.data_repository.get_lbl2ent()
         self.rel2lbl = self.data_repository.get_rel2lbl()
         self.lbl2rel = self.data_repository.get_lbl2rel()
+        self.movies = self.data_repository.get_movies_df()
+        self.list_of_all_genres = self.data_repository.get_list_of_all_genres()
 
     def get_ent_vec(self, ent_label):
         if (ent_label not in self.lbl2ent):
@@ -37,9 +40,15 @@ class RecommendationResponder(Responder):
 
     def answer_query(self, query):
         entities = self.entity_extractor.get_guaranteed_entities(query)
+        for entity in entities:
+            if len(self.movies[self.movies['title'].str.contains(entity)]) == 0:
+                # not a movie
+                entities.remove(entity)
 
         if(len(entities) == 0):
-            raise Exception("I'm sorry, I couldn't understand the query.")
+            genre = process.extractOne(query, self.list_of_all_genres)[0]
+            list_of_relevant_movies = self.movies[self.movies['genres'].apply(lambda x: genre in x)]
+            return list_of_relevant_movies['title'].tolist()[:3]
         else:
             entity_vecs = []
             for ent in entities:

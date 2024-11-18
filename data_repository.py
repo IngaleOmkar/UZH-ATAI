@@ -5,6 +5,7 @@ import os
 import rdflib
 import csv
 import torch
+import pandas as pd
 
 class DataRepository:
     def __init__(self):
@@ -54,7 +55,23 @@ class DataRepository:
         # with open("data/rel_nlp_embeddings.json", "r") as f:
         #     self.rel_lbl_emb = {key: np.array(embedding) for key, embedding in json.load(f).items()}
 
+        print("========== Loading External Data ==========")
+        self.movies = pd.read_csv('data/movies.csv')
+        self.movies['genres'] = self.movies['genres'].apply(lambda x: x.split('|'))
+
+        list_of_all_genres = []
+        for i in range(len(self.movies)):
+            list_of_all_genres.extend(self.movies['genres'].values[i])
+
+        self.list_of_all_genres = list(set(list_of_all_genres))
+
         print("========== Data Repository initialized ==========")
+    
+    def get_movies_df(self):
+        return self.movies
+    
+    def get_list_of_all_genres(self):
+        return self.list_of_all_genres
 
     def get_ner_embeddings(self):
         return self.ner_embeddings
