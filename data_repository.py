@@ -57,7 +57,7 @@ class DataRepository:
         #     self.rel_lbl_emb = {key: np.array(embedding) for key, embedding in json.load(f).items()}
 
         print("========== Loading External Data ==========")
-        self.movies = pd.read_csv('data/movies2.csv')
+        self.movies = pd.read_csv('data/movies.csv')
         # self.movies['genres'] = self.movies['genres'].apply(lambda x: x.split('|'))
 
         self.movies['genre'] = self.movies['genre'].apply(ast.literal_eval)
