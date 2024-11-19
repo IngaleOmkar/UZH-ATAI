@@ -6,6 +6,7 @@ import rdflib
 import csv
 import torch
 import pandas as pd
+import ast
 
 class DataRepository:
     def __init__(self):
@@ -56,14 +57,17 @@ class DataRepository:
         #     self.rel_lbl_emb = {key: np.array(embedding) for key, embedding in json.load(f).items()}
 
         print("========== Loading External Data ==========")
-        self.movies = pd.read_csv('data/movies.csv')
-        self.movies['genres'] = self.movies['genres'].apply(lambda x: x.split('|'))
+        self.movies = pd.read_csv('data/movies2.csv')
+        # self.movies['genres'] = self.movies['genres'].apply(lambda x: x.split('|'))
 
-        list_of_all_genres = []
-        for i in range(len(self.movies)):
-            list_of_all_genres.extend(self.movies['genres'].values[i])
+        self.movies['genre'] = self.movies['genre'].apply(ast.literal_eval)
+        all_genres = set()
+        for genres in self.movies['genre']:
+            all_genres.update(genres)
+        all_genres = set([genre.strip() for genre in all_genres])
+        all_genres = list(all_genres)
 
-        self.list_of_all_genres = list(set(list_of_all_genres))
+        self.list_of_all_genres = all_genres
 
         print("========== Data Repository initialized ==========")
     

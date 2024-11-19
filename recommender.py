@@ -40,6 +40,10 @@ class RecommendationResponder(Responder):
 
     def answer_query(self, query):
         entities = self.entity_extractor.get_guaranteed_entities(query)
+        for entity in entities:
+            if len(self.movies[self.movies['movie_name'].str.contains(entity)]) == 0:
+                # not a movie
+                entities.remove(entity)
 
         print(f"Identified entities: {entities}")
 
@@ -52,8 +56,9 @@ class RecommendationResponder(Responder):
 
         if(len(title_entities) == 0):
             genre = process.extractOne(query, self.list_of_all_genres)[0]
-            list_of_relevant_movies = self.movies[self.movies['genres'].apply(lambda x: genre in x)]
-            return list_of_relevant_movies['title'].tolist()[:3]
+            genre = genre.upper()
+            list_of_relevant_movies = self.movies[self.movies['genre'].apply(lambda x: genre in x)]
+            return list_of_relevant_movies['movie_name'].tolist()[:3]
         else:
             entity_vecs = []
             for ent in title_entities:
