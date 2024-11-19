@@ -49,7 +49,7 @@ class RecommendationResponder(Responder):
 
         title_entities = []
         for entity in entities:
-            if len(self.movies[self.movies['title'].str.contains(entity)]) > 0:
+            if len(self.movies[self.movies['movie_name'].str.contains(entity)]) > 0:
                 title_entities.append(entity)
 
         print(f"Identified title entities: {title_entities}")
@@ -79,7 +79,7 @@ class RecommendationResponder(Responder):
                 final_ents = []
 
                 for ent in ents:
-                    if ent not in [entity for entity in entities] and len(self.movies[self.movies['title'].str.contains(ent)]) > 0:
+                    if ent not in [entity for entity in entities] and len(self.movies[self.movies['movie_name'].str.contains(ent)]) > 0:
                         final_ents.append(ent)
 
                 print(final_ents)
