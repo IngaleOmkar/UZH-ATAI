@@ -40,18 +40,23 @@ class RecommendationResponder(Responder):
 
     def answer_query(self, query):
         entities = self.entity_extractor.get_guaranteed_entities(query)
-        for entity in entities:
-            if len(self.movies[self.movies['title'].str.contains(entity)]) == 0:
-                # not a movie
-                entities.remove(entity)
 
-        if(len(entities) == 0):
+        print(f"Identified entities: {entities}")
+
+        title_entities = []
+        for entity in entities:
+            if len(self.movies[self.movies['title'].str.contains(entity)]) > 0:
+                title_entities.append(entity)
+
+        print(f"Identified title entities: {title_entities}")
+
+        if(len(title_entities) == 0):
             genre = process.extractOne(query, self.list_of_all_genres)[0]
             list_of_relevant_movies = self.movies[self.movies['genres'].apply(lambda x: genre in x)]
             return list_of_relevant_movies['title'].tolist()[:3]
         else:
             entity_vecs = []
-            for ent in entities:
+            for ent in title_entities:
                 try: 
                     entity_vecs.append(self.get_ent_vec(ent))
                 except Exception as e:
@@ -62,14 +67,14 @@ class RecommendationResponder(Responder):
 
             try:
                 distances = pairwise_distances(entity_vec.reshape(1, -1), self.entity_emb)
-                closest_indices = np.argsort(distances[0])[:20]
+                closest_indices = np.argsort(distances[0])[:30]
                 ents = [self.ent2lbl[self.id2ent[id]] for id in closest_indices]
                 print(ents)
 
                 final_ents = []
 
                 for ent in ents:
-                    if ent not in entities:
+                    if ent not in [entity for entity in entities] and len(self.movies[self.movies['title'].str.contains(ent)]) > 0:
                         final_ents.append(ent)
 
                 print(final_ents)
