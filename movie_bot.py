@@ -54,6 +54,8 @@ class Agent:
                     # Send a message to the corresponding chat room using the post_messages method of the room object.
                     try:
                         answer = self.answer(message.message)
+                        answer = answer.encode('latin-1', errors='replace').decode('latin-1')
+                        print(answer)
                         room.post_messages(answer)
 
                     except Exception as e:
@@ -108,7 +110,7 @@ class Agent:
                 # encode the answer in utf-8 to avoid encoding issues
                 if(type(answer_factual) == list):
                     answer_factual = " ".join(answer_factual)
-                answer_factual = answer_factual.encode('utf-8')
+                # answer_factual = answer_factual.encode('utf-8')
                 answer_string += f"I think the answer is {answer_factual} (factual)"
             elif "very sorry" not in answer_embedding:
                 answer_string += f"I think the answer is {answer_embedding} (embedding)"
