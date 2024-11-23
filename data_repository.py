@@ -53,9 +53,6 @@ class DataRepository:
         self.rel2lbl = {rel: str(lbl) for rel, lbl in self.graph.subject_objects(self.RDFS.label) if str(rel).startswith(self.WDT)}
         self.lbl2rel = {lbl: rel for rel, lbl in self.rel2lbl.items()}
 
-        # with open("data/rel_nlp_embeddings.json", "r") as f:
-        #     self.rel_lbl_emb = {key: np.array(embedding) for key, embedding in json.load(f).items()}
-
         print("========== Loading External Data ==========")
         self.movies = pd.read_csv('data/movies.csv')
         # self.movies['genres'] = self.movies['genres'].apply(lambda x: x.split('|'))
@@ -69,7 +66,18 @@ class DataRepository:
 
         self.list_of_all_genres = all_genres
 
+        print("========== Loading Image Data ==========")
+        self.image_df = pd.read_csv('data/images.csv')
+        self.image_df['cast'] = self.image_df['cast'].apply(lambda x: x[2:-2].split("', '"))
+        self.master_df = pd.read_csv('data/master.csv')
+
         print("========== Data Repository initialized ==========")
+
+    def get_master_df(self):
+        return self.master_df
+
+    def get_image_df(self):
+        return self.image_df
     
     def get_movies_df(self):
         return self.movies
