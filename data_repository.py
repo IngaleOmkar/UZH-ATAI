@@ -69,8 +69,15 @@ class DataRepository:
 
         self.list_of_all_genres = all_genres
 
-        print("========== Data Repository initialized ==========")
+        print("========== Loading Crowd Data ==========")
+
+        with open('data/crowd_majorty_kappa_cleaned.json', 'r') as file:
+            self.crowd_data = json.load(file)
+
     
+        print("========== Data Repository initialized ==========")
+
+
     def get_movies_df(self):
         return self.movies
     
