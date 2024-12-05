@@ -29,26 +29,33 @@ def overall_disagreement(worker, batch, majority_data):
     disagreement_rate = float(nr_disagreements)/float(len(tasks))
     return disagreement_rate
 
+def answer_consistency(worker, batch):
+    tasks = batch.groupby('HITId')
+    is_consistent = True
+    prev_answer = 0.0
+    for i, (task_name, task) in enumerate(tasks):
+        answer = task.loc[task['WorkerId'] == worker, 'AnswerID'].values[0]
+        if (i > 0 and prev_answer != answer):
+            is_consistent = False
+        prev_answer = answer
+    
+    return is_consistent
+
+def min_response_time(worker, batch):
+    return batch.loc[batch['WorkerId'] == worker, 'WorkTimeInSeconds'].min()
+
 def score_malicious(worker, batch, majority_data):
     reputation = int(batch.loc[batch['WorkerId'] == worker, 'LifetimeApprovalRate'].iloc[0].replace('%', ''))
     rtv, normalized_rtv = response_time_variance(worker, batch)
     mrt = mean_response_time(worker, batch)
     disagreement = overall_disagreement(worker, batch, majority_data)
+    consistent = answer_consistency(worker, batch)
+    min_time = min_response_time(worker, batch)
 
-    print(f"-----------\nworker: {worker}\nreputation: {reputation}\nrtv: {rtv}\nmrt: {mrt}\ndisagreement: {disagreement}")
-
-    malicious_score = 0
-
-    if (normalized_rtv < 0.2 or mrt < 10):
-        if (reputation < 85):
-            malicious_score += 1
-        else:
-            malicious_score += 0.5
-
-    if (disagreement > 0.3):
-        malicious_score += 0.5
-
-    return malicious_score
+    if (reputation < 50 or min_time < 10 or consistent):
+        return True
+    else: 
+        return False
 
 def clean_malicious(data_path, majority_path, output_path):
     data = pd.read_csv(data_path, sep="\t")
@@ -56,16 +63,16 @@ def clean_malicious(data_path, majority_path, output_path):
     with open(majority_path, 'r') as json_file:
         majority_data = json.load(json_file)
 
+    cleaned_data = pd.DataFrame()
+
     batches = data.groupby('HITTypeId')
     for batch_name, batch in batches:
-        workers = batch['WorkerId'].unique()
-        malicious_scores = {}
+        filtered_batch = batch[batch.apply(
+            lambda row: not score_malicious(row['WorkerId'], batch, majority_data), axis=1
+        )]
+    
+        cleaned_data = pd.concat([cleaned_data, filtered_batch], ignore_index=True)
 
-        for worker in workers:
-            malicious_scores[worker] = score_malicious(worker, batch, majority_data)
-
-    malicious_condition = data['WorkerId'].apply(lambda x: malicious_scores.get(x, 0) > 0.5)
-    cleaned_data = data[malicious_condition]
     print(f"original: {len(data)}, cleaned: {len(cleaned_data)}")
 
-    data.to_csv(output_path, sep='\t', index=False)
+    cleaned_data.to_csv(output_path, sep='\t', index=False)

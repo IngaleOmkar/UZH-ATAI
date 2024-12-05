@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from embeddings import EmbeddingsResponder
 from recommender import RecommendationResponder
 from question_classifier import QuestionClassifier
+from crowd import CrowdsourceResoponder
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -27,6 +28,7 @@ class Agent:
         self.factual = FactualResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier, emb_intent_classifier = self.emb_intent_classifier)
         self.recommender = RecommendationResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier)
         self.question_classifier = QuestionClassifier()
+        self.crowd = CrowdsourceResoponder(self.data_repository, self.extractor, self.mlp_intent_classifier)
 
         self.username = username
         # Initialize the Speakeasy Python framework and login.
@@ -86,6 +88,12 @@ class Agent:
         if query_type == "recommendation":
             return self.answer_recommendation(query)
         else:
+            crowd_result = self.crowd.answer_query(query)
+            if ("sorry" not in crowd_result.lower()):
+                return crowd_result
+            
+            print("continue with factual and embedding.")
+
             with ThreadPoolExecutor(max_workers=2) as executor:
 
                 futures = {
@@ -103,6 +111,9 @@ class Agent:
             
             answer_factual = results["factual"]
             answer_embedding = results["embedding"]
+
+            print(f"answer factual: {answer_factual}")
+            print(f"answer embedding: {answer_embedding}")
 
             answer_string = ""
 
@@ -158,7 +169,6 @@ class Agent:
             return results
         except Exception as e:
             return "I am very sorry, but no answer was found."
-        
 
     @staticmethod
     def get_time():
