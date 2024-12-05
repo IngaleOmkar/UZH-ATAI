@@ -61,7 +61,6 @@ def invalid_answer(assignmentId, data):
     wtis = data.loc[data["AssignmentId"] == assignmentId, "WorkTimeInSeconds"].values[0]
     reputation = data.loc[data["AssignmentId"] == assignmentId, "LifetimeApprovalRate"].values[0]
     rep_val = float(reputation.replace('%', ''))
-    print(f"assignemnt id: {assignmentId}, reputation: {rep_val}, {rep_val < 50}")
     return wtis <= 10 or rep_val < 50
 
 def clean_malicious(data_path, majority_path, output_path):
@@ -79,9 +78,7 @@ def clean_malicious(data_path, majority_path, output_path):
             lambda row: not malicious_worker(row['WorkerId'], batch, majority_data) and not invalid_answer(row['AssignmentId'], data), axis=1
         )]
     
-        print(f"len filtered batch: {len(batch)}, {len(filtered_batch)}")
         cleaned_data = pd.concat([cleaned_data, filtered_batch], ignore_index=True)
-
 
     print(f"original: {len(data)}, cleaned: {len(cleaned_data)}")
 

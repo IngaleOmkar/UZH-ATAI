@@ -1,5 +1,3 @@
-- update KG!
-
 recommendations todo:
 - (?) replace pairwise dist with radius and overlap method 
 - (?) LOTR and Forrest Gump -> should yield highly ranked movies -> very specific
@@ -10,7 +8,7 @@ general:
 - humanness
 
 NER
-- E.T. the extraterrestrial NER
+- E.T. the extraterrestrial  (ET does not exist in graph at all!!! Q11621)
 - Fuzzy Matching?
 
 Relation Extraction
