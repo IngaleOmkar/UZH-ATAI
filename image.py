@@ -21,28 +21,45 @@ class ImageResponder(Responder):
                 print("entity: ", entity)
                 possible_ids = self.master_df[self.master_df['label'].str.contains(entity, na=False)]['id'].to_list()
                 possible_ids = [str(x) for x in possible_ids]
+                # cap the length of possible_ids to 5
+                possible_ids = possible_ids[:5]
                 print("possible_ids: ", possible_ids)
                 if len(possible_ids) == 0:
-                    raise Exception("I'm sorry, I couldn't find any images for this entity.")
+                    continue
                 else:
                     possible_images = []
                     if re.match(self.regex, entity): # is an actor 
-                        for index, row in self.image_df.iterrows():
-                            if(len(row['cast']) == 1 and row['cast'][0] in possible_ids):
-                                possible_images.insert(0, row['img']) # good match 
-                                break
-                            elif any(item in possible_ids for item in row['cast']):
-                                possible_images.append(row['img'])
-                                if len(possible_ids) > 5:
-                                    break # no point in searching for more 
+                        print('identified actor entity: ', entity)
+                        # Filter rows where 'cast' has only one element and that element is in possible_ids
+                        good_matches = self.image_df[self.image_df['cast'].apply(lambda x: len(x) == 1 and x[0] in possible_ids)]
+
+                        # If there are good matches, insert the first one at the beginning of possible_images
+                        if not good_matches.empty:
+                            possible_images.insert(0, good_matches.iloc[0]['img'])
+                        else:
+                            # Filter rows where any element in 'cast' is in possible_ids
+                            possible_matches = self.image_df[self.image_df['cast'].apply(lambda x: any(item in possible_ids for item in x))]
+                            
+                            # Append images to possible_images
+                            possible_images.extend(possible_matches['img'].tolist())
+
                     else: # is a movie
-                        for index, row in self.image_df.iterrows():
-                            if(len(row['movie']) == 1 and row['movie'][0] in possible_ids):
-                                possible_images.insert(0, row['img'])
-                            elif any(item in possible_ids for item in row['movie']):
-                                possible_images.append(row['img'])
-                                if len(possible_ids) > 5:
-                                    break
+                        print('identified movie entity: ', entity)
+
+                        # Filter rows where 'movie' has only one element and that element is in possible_ids
+                        good_movie_matches = self.image_df[self.image_df['movie'].apply(lambda x: len(x) == 1 and x[0] in possible_ids)]
+
+                        # If there are good matches, insert the first one at the beginning of possible_images
+                        if not good_movie_matches.empty:
+                            possible_images.insert(0, good_movie_matches.iloc[0]['img'])
+                        else:
+                            print("No good matches found")
+                            # Filter rows where any element in 'movie' is in possible_ids
+                            possible_movie_matches = self.image_df[self.image_df['movie'].apply(lambda x: any(item in possible_ids for item in x))]
+                            
+                            # Append images to possible_images
+                            possible_images.extend(possible_movie_matches['img'].tolist())
+                        
                     print("possible_images: ", possible_images)
                     if len(possible_images) == 0:
                         continue 
@@ -51,6 +68,3 @@ class ImageResponder(Responder):
             if(len(images) == 0):
                 raise Exception("I'm sorry, I couldn't find any images for this entity.")
             return images
-
-            
-            
