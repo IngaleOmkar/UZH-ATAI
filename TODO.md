@@ -1,9 +1,3 @@
-<!-- - markov chain and KL divergence with answering patterns (Yang et al. 2024)
-- time based MI by (Gadiraju et al. 2015)
-    - adjust to include time patterns
-- decision network based on (Yang et al. 2024)
-- empirical thesholds through trial and manual inspection of data -->
-
 - update KG!
 
 recommendations todo:
@@ -11,9 +5,6 @@ recommendations todo:
 - (?) LOTR and Forrest Gump -> should yield highly ranked movies -> very specific
 - actor based recommendations
 - Basic justifications
-
-factual todo:
-- IS-A relationships?
 
 general:
 - humanness
@@ -23,9 +14,11 @@ NER
 - Fuzzy Matching?
 
 Relation Extraction
-- executive prodcuer does not map to a relation ()
+- "executive prodcuer" does not map to a relation but rather an entity
+- IS-A relationships? ddis:specificSubclass 
 
 Question Classification
-- improve
+- failing questions:
     - "how much did Peaceful Warrior make?"
+    - "What is the country of citizenship of Cho Geun-hyeon?"
 - fallback to other question type when answer is invalid -> avoids problems if classifier fucks up
