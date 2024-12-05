@@ -44,7 +44,7 @@ def answer_consistency(worker, batch):
 def min_response_time(worker, batch):
     return batch.loc[batch['WorkerId'] == worker, 'WorkTimeInSeconds'].min()
 
-def score_malicious(worker, batch, majority_data):
+def malicious_worker(worker, batch, majority_data):
     reputation = int(batch.loc[batch['WorkerId'] == worker, 'LifetimeApprovalRate'].iloc[0].replace('%', ''))
     rtv, normalized_rtv = response_time_variance(worker, batch)
     mrt = mean_response_time(worker, batch)
@@ -52,13 +52,21 @@ def score_malicious(worker, batch, majority_data):
     consistent = answer_consistency(worker, batch)
     min_time = min_response_time(worker, batch)
 
-    if (reputation < 50 or min_time < 10 or consistent):
+    if (consistent):
         return True
     else: 
         return False
+    
+def invalid_answer(assignmentId, data):
+    wtis = data.loc[data["AssignmentId"] == assignmentId, "WorkTimeInSeconds"].values[0]
+    reputation = data.loc[data["AssignmentId"] == assignmentId, "LifetimeApprovalRate"].values[0]
+    rep_val = float(reputation.replace('%', ''))
+    print(f"assignemnt id: {assignmentId}, reputation: {rep_val}, {rep_val < 50}")
+    return wtis <= 10 or rep_val < 50
 
 def clean_malicious(data_path, majority_path, output_path):
     data = pd.read_csv(data_path, sep="\t")
+
 
     with open(majority_path, 'r') as json_file:
         majority_data = json.load(json_file)
@@ -68,10 +76,12 @@ def clean_malicious(data_path, majority_path, output_path):
     batches = data.groupby('HITTypeId')
     for batch_name, batch in batches:
         filtered_batch = batch[batch.apply(
-            lambda row: not score_malicious(row['WorkerId'], batch, majority_data), axis=1
+            lambda row: not malicious_worker(row['WorkerId'], batch, majority_data) and not invalid_answer(row['AssignmentId'], data), axis=1
         )]
     
+        print(f"len filtered batch: {len(batch)}, {len(filtered_batch)}")
         cleaned_data = pd.concat([cleaned_data, filtered_batch], ignore_index=True)
+
 
     print(f"original: {len(data)}, cleaned: {len(cleaned_data)}")
 

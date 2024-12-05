@@ -18,16 +18,14 @@ def evaluate_crowd_data(input_path, output_path):
         batch_votes = []
         majorty_data[batch]['tasks'] = {} 
         for task, task_row in task_groups:
-            answer_list = list(task_row['AnswerID'])
-            vote_count = [0, 0, 0]
+            answer_list = list(task_row['AnswerLabel'])
+            vote_count = [0, 0]
 
             for entry in answer_list:
-                if (np.isnan(entry)):
-                    vote_count[2] += 1
-                elif (entry == 1.0):
-                    vote_count[0] += 1
-                else:
+                if (entry == "INCORRECT"):
                     vote_count[1] += 1
+                else:
+                    vote_count[0] += 1
                 
             batch_votes.append(vote_count)
             task_obj = {}
@@ -42,6 +40,7 @@ def evaluate_crowd_data(input_path, output_path):
         kappa = fleiss_kappa(batch_votes_mat)
         print(f"Fleiss' Kappa: {kappa}")
         majorty_data[batch]['Kappa'] = kappa
+
 
     with open(output_path, 'w') as json_file:
         json.dump(majorty_data, json_file, indent=4)
