@@ -4,13 +4,6 @@ recommendations todo:
 - actor based recommendations
 - Basic justifications
 
-general:
-- humanness
-
-NER
-- E.T. the extraterrestrial  (ET does not exist in graph at all!!! Q11621)
-- Fuzzy Matching?
-
 Relation Extraction
 - "executive prodcuer" does not map to a relation but rather an entity
 - IS-A relationships? ddis:specificSubclass 

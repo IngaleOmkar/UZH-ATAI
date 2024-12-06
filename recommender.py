@@ -23,6 +23,22 @@ class RecommendationResponder(Responder):
         self.lbl2rel = self.data_repository.get_lbl2rel()
         self.movies = self.data_repository.get_movies_df()
         self.list_of_all_genres = self.data_repository.get_list_of_all_genres()
+        self.list_of_all_actors = self.data_repository.get_list_of_all_actors()
+
+    def actor_query(self, actor):
+        q = f"""
+            PREFIX wd: <http://www.wikidata.org/entity/>
+
+            SELECT ?movie ?title ?popularity
+            WHERE {{
+                ?movie wdt:P161 wd:{actor} ;
+                wdt:P1476 ?title ;
+                wdt:P444 ?popularity .
+            }}
+            ORDER BY DESC(?popularity)
+            LIMIT 3"""
+        
+        return self.graph.query(q)
 
     def get_ent_vec(self, ent_label):
         if (ent_label not in self.lbl2ent):
@@ -48,17 +64,25 @@ class RecommendationResponder(Responder):
         print(f"Identified entities: {entities}")
 
         title_entities = []
+        actor_entities = []
         for entity in entities:
             if len(self.movies[self.movies['movie_name'].str.contains(entity)]) > 0:
                 title_entities.append(entity)
+            elif (entity in self.actors):
+                actor_entities.append(entity)
 
         print(f"Identified title entities: {title_entities}")
+        print(f"Identified actor entities: {actor_entities}")
 
-        if(len(title_entities) == 0):
+        if(len(title_entities) == 0 and len(actor_entities) == 0):
             genre = process.extractOne(query, self.list_of_all_genres)[0]
             genre = genre.upper()
             list_of_relevant_movies = self.movies[self.movies['genre'].apply(lambda x: genre in x)]
             return list_of_relevant_movies['movie_name'].tolist()[:3]
+        elif (len(actor_entities) > 0 and actor_entities[0] in self.lbl2ent):
+            ent = self.lbl2ent[actor_entities[0]]
+            print(f"actor entity: {ent}")
+            return self.actor_query(ent)
         else:
             entity_vecs = []
             for ent in title_entities:

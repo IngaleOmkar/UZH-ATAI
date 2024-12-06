@@ -55,6 +55,21 @@ class DataRepository:
 
         self.rel2lbl = {rel: str(lbl) for rel, lbl in self.graph.subject_objects(self.RDFS.label) if str(rel).startswith(self.WDT)}
         self.lbl2rel = {lbl: rel for rel, lbl in self.rel2lbl.items()}
+        
+        # with open("data/rel_nlp_embeddings.json", "r") as f:
+        #     self.rel_lbl_emb = {key: np.array(embedding) for key, embedding in json.load(f).items()}
+
+        # GET ALL ACTORS
+
+        actor_query = """
+            PREFIX ex: <http://example.com/property/>
+            SELECT DISTINCT ?actor ?name
+            WHERE {
+            ?movie ex:hasActor ?actor .
+            ?actor ex:name ?name .
+        }"""
+
+        self.list_of_all_actors = self.graph.query(actor_query)
 
         print("========== Loading External Data ==========")
         self.movies = pd.read_csv('data/movies.csv')
@@ -92,6 +107,9 @@ class DataRepository:
     
     def get_list_of_all_genres(self):
         return self.list_of_all_genres
+    
+    def get_list_of_all_actors(self):
+        return self.list_of_all_actors
 
     def get_ner_embeddings(self):
         return self.ner_embeddings
