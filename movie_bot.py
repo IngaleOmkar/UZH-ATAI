@@ -10,7 +10,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from embeddings import EmbeddingsResponder
 from recommender import RecommendationResponder
 from question_classifier import QuestionClassifier
+from image import ImageResponder
 from crowd import CrowdsourceResoponder
+
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -27,6 +29,7 @@ class Agent:
         self.embeddings = EmbeddingsResponder(self.data_repository, self.extractor, self.mlp_intent_classifier, self.emb_intent_classifier)
         self.factual = FactualResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier, emb_intent_classifier = self.emb_intent_classifier)
         self.recommender = RecommendationResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier)
+        self.image = ImageResponder(self.data_repository, self.extractor, self.emb_intent_classifier)
         self.question_classifier = QuestionClassifier()
         self.crowd = CrowdsourceResoponder(self.data_repository, self.extractor, self.emb_intent_classifier)
 
@@ -83,11 +86,46 @@ class Agent:
             time.sleep(listen_freq)
 
     def answer(self, query):
-        results = {}
-        query_type = self.question_classifier.classify(query)
-        if query_type == "recommendation":
-            return self.answer_recommendation(query)
+        images = self.image.answer_query(query)
+        if images:
+            return "image:" + images[0]
         else:
+            return "NF"
+        # results = {}
+        # query_type = self.question_classifier.classify(query)
+        # if query_type == "recommendation":
+        #     return self.answer_recommendation(query)
+        # else:
+        #     with ThreadPoolExecutor(max_workers=2) as executor:
+
+        #         futures = {
+        #             executor.submit(self.answer_factual, query): "factual",
+        #             executor.submit(self.answer_embedding, query): "embedding"
+        #         }
+
+        #         for future in as_completed(futures):
+        #             answer_type =  futures[future]
+        #             try:
+        #                 result = future.result()
+        #                 results[answer_type] = result
+        #             except:
+        #                 results[answer_type] = "None"
+            
+        #     answer_factual = results["factual"]
+        #     answer_embedding = results["embedding"]
+
+        #     answer_string = ""
+
+        #     if "very sorry" not in answer_factual:
+        #         # encode the answer in utf-8 to avoid encoding issues
+        #         if(type(answer_factual) == list):
+        #             answer_factual = " ".join(answer_factual)
+        #         # answer_factual = answer_factual.encode('utf-8')
+        #         answer_string += f"I think the answer is {answer_factual} (factual)"
+        #     elif "very sorry" not in answer_embedding:
+        #         answer_string += f"I think the answer is {answer_embedding} (embedding)"
+        #     else:
+        #         answer_string = "No answer was found."
             crowd_result = self.crowd.answer_query(query)
             if ("sorry" not in crowd_result.lower()):
                 return crowd_result
@@ -128,7 +166,7 @@ class Agent:
             else:
                 answer_string = "No answer was found."
             
-            return answer_string
+        #     return answer_string
 
     def answer_recommendation(self, query):
         answer_string = ""
