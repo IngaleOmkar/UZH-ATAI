@@ -48,11 +48,6 @@ def delete(g, ent, rel, obj):
     print(query)
     g.update(query)
 
-for batch in answers:
-    for task, val in answers[batch]["tasks"].items():
-        triple = (val["Entity"], val["Relation"], val["Answer"])
-        all_tasks[triple] = val["Majority Element"]
-
 def entity_to_uri(x):
     x = x.split(":")[1]
     if (x in data_repository.WD):
@@ -96,6 +91,10 @@ def create_object_uri(x):
     else:
         return x
 
+for batch in answers:
+    for task, val in answers[batch]["tasks"].items():
+        triple = (val["Entity"], val["Relation"], val["Answer"])
+        all_tasks[triple] = val["Majority Element"]
 
 initial_len = len(g)
 for task, result in all_tasks.items():
@@ -119,3 +118,14 @@ for task, result in all_tasks.items():
 
 print(f"initial length: {initial_len}, final length: {len(g)}")
 g.serialize(destination="data/14_graph_updated.nt", format="turtle")
+
+
+df = pd.read_csv('data/crowd_data_cleaned.tsv', sep="\t")
+
+relations = df["Input2ID"].unique()
+objs = pd.concat([df["Input1ID"], df["Input3ID"]]).unique()
+
+entities = list(filter(lambda x: x.startswith("wd:"), objs))
+
+pd.DataFrame(entities, columns=["Entities"]).to_csv("data/crowdsourcing_entities.csv", index=False)
+pd.DataFrame(relations, columns=["Relations"]).to_csv("data/crowdsourcing_relations.csv", index=False)
