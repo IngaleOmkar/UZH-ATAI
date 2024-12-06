@@ -1,5 +1,6 @@
 from responder import Responder
 
+
 class FactualResponder(Responder):
     def __init__(self, data_repository, entity_extractor, mlp_intent_classifier, emb_intent_classifier):
         super().__init__(data_repository, entity_extractor, mlp_intent_classifier)
@@ -14,10 +15,8 @@ class FactualResponder(Responder):
     def answer_query(self, query):
         entities = self.entity_extractor.get_guaranteed_entities(query)
 
-
         tag_mlp, uri_mlp = self.mlp_intent_classifier.classify_query(query)
         tag_emb, uri_emb = self.emb_intent_classifier.classify_query(" ".join(query.split(entities[0])))
-
 
         if(len(entities) == 0):
             raise Exception("I'm sorry, I couldn't understand the query.")

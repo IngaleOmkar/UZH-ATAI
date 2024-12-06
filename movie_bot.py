@@ -11,6 +11,8 @@ from embeddings import EmbeddingsResponder
 from recommender import RecommendationResponder
 from question_classifier import QuestionClassifier
 from image import ImageResponder
+from crowd import CrowdsourceResoponder
+
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -29,6 +31,7 @@ class Agent:
         self.recommender = RecommendationResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier)
         self.image = ImageResponder(self.data_repository, self.extractor, self.emb_intent_classifier)
         self.question_classifier = QuestionClassifier()
+        self.crowd = CrowdsourceResoponder(self.data_repository, self.extractor, self.emb_intent_classifier)
 
         self.username = username
         # Initialize the Speakeasy Python framework and login.
@@ -123,6 +126,45 @@ class Agent:
         #         answer_string += f"I think the answer is {answer_embedding} (embedding)"
         #     else:
         #         answer_string = "No answer was found."
+            crowd_result = self.crowd.answer_query(query)
+            if ("sorry" not in crowd_result.lower()):
+                return crowd_result
+            
+            print("continue with factual and embedding.")
+
+            with ThreadPoolExecutor(max_workers=2) as executor:
+
+                futures = {
+                    executor.submit(self.answer_factual, query): "factual",
+                    executor.submit(self.answer_embedding, query): "embedding"
+                }
+
+                for future in as_completed(futures):
+                    answer_type =  futures[future]
+                    try:
+                        result = future.result()
+                        results[answer_type] = result
+                    except:
+                        results[answer_type] = "None"
+            
+            answer_factual = results["factual"]
+            answer_embedding = results["embedding"]
+
+            print(f"answer factual: {answer_factual}")
+            print(f"answer embedding: {answer_embedding}")
+
+            answer_string = ""
+
+            if "very sorry" not in answer_factual:
+                # encode the answer in utf-8 to avoid encoding issues
+                if(type(answer_factual) == list):
+                    answer_factual = " ".join(answer_factual)
+                # answer_factual = answer_factual.encode('utf-8')
+                answer_string += f"I think the answer is {answer_factual} (factual)"
+            elif "very sorry" not in answer_embedding:
+                answer_string += f"I think the answer is {answer_embedding} (embedding)"
+            else:
+                answer_string = "No answer was found."
             
         #     return answer_string
 
@@ -165,7 +207,6 @@ class Agent:
             return results
         except Exception as e:
             return "I am very sorry, but no answer was found."
-        
 
     @staticmethod
     def get_time():
