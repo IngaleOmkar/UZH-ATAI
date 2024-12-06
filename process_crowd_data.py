@@ -78,21 +78,21 @@ def object_to_uri_or_literal(x):
     
 def create_entity_uri(x):
     x = x.split(":")[1]
-    return f"https://www.wikidata.org/wiki/{x}"
+    return f"http://www.wikidata.org/entity/{x}"
 
 def create_relation_uri(x):
     parts = x.split(":")
     rel = parts[1]
     type = parts[0]
     if (type == "wdt"):
-        return f"https://www.wikidata.org/wiki/Property:{rel}"
+        return f"http://www.wikidata.org/prop/direct/{rel}"
     else:
         return f"http://ddis.ch/atai/{rel}"
     
 def create_object_uri(x):
     parts = x.split(":")
     if (parts[0] == "wd" and len(parts) == 2):
-        return f"https://www.wikidata.org/wiki/{parts[1]}"
+        return f"http://www.wikidata.org/entity/{parts[1]}"
     else:
         return x
 

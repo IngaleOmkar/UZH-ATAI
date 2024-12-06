@@ -28,7 +28,7 @@ class Agent:
         self.factual = FactualResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier, emb_intent_classifier = self.emb_intent_classifier)
         self.recommender = RecommendationResponder(self.data_repository, self.extractor, mlp_intent_classifier = self.mlp_intent_classifier)
         self.question_classifier = QuestionClassifier()
-        self.crowd = CrowdsourceResoponder(self.data_repository, self.extractor, self.mlp_intent_classifier)
+        self.crowd = CrowdsourceResoponder(self.data_repository, self.extractor, self.emb_intent_classifier)
 
         self.username = username
         # Initialize the Speakeasy Python framework and login.

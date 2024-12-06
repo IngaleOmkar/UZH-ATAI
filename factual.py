@@ -23,14 +23,6 @@ class FactualResponder(Responder):
         else:
             en_uri = self.label_to_uri[entities[0]]
 
-            # crowd_answer = ""
-            # ent_rel_tuple = ("wd:" + str(en_uri).split('/')[-1], "wdt:" + str(tag_emb).split('/')[-1])
-            # print(f"exists in crowd data: {self.crowdsource_checker.exists_in_crowd_data(ent_rel_tuple)}")
-            # if (self.crowdsource_checker.exists_in_crowd_data(ent_rel_tuple)):
-            #     kappa = self.crowdsource_checker.get_interrater_agreement(ent_rel_tuple)
-            #     reject_votes, support_votes = self.crowdsource_checker.get_votes(ent_rel_tuple)
-            #     crowd_answer = f"\n[Crowd, inter-rater agreement {kappa}, The answer distribution for this specific task was {support_votes} support vote(s), {reject_votes} reject vote(s)]"
-
             if(tag_mlp == tag_emb):
                 # both models agree
                 try:
