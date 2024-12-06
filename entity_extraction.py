@@ -14,9 +14,7 @@ class Extractor:
 
         # Load the NER model from Hugging Face
         self.ner_pipeline = pipeline("ner", model="dbmdz/bert-large-cased-finetuned-conll03-english", aggregation_strategy="simple")
-        
-        # Load SpaCy's dependency parser
-        self.nlp = spacy.load("en_core_web_sm")
+    
 
     def get_embedding_entities(self, entities):
         embedding_entities = []
@@ -31,9 +29,69 @@ class Extractor:
                 embedding_entities.append(identified_entity)
         return embedding_entities
     
-    def get_guaranteed_entities(self, query):
+    def merge_adjacent_entities(self, entities, max_gap=1, force_merge_names=True):
+        if not entities:
+            return []
+        
+        merged = []
+        current = entities[0]
+        
+        for next_entity in entities[1:]:
+            # Handle WordPiece tokens (##)
+            is_wordpiece = next_entity['word'].startswith('##')
+            
+            # Calculate gap between entities
+            gap = next_entity['start'] - current['end']
+            
+            # Check if either entity group is PER or MISC
+            is_name_related = (
+                current['entity_group'] in ['PER', 'MISC'] and 
+                next_entity['entity_group'] in ['PER', 'MISC']
+            )
+            
+            # Conditions for merging:
+            # 1. WordPiece continuation
+            # 2. Close enough entities (within max_gap) AND either:
+            #    a. Same entity group OR
+            #    b. One entity contains the other's text OR
+            #    c. Both entities are name-related (PER or MISC) if force_merge_names is True
+            should_merge = (
+                is_wordpiece or
+                (gap <= max_gap and (
+                    current['entity_group'] == next_entity['entity_group'] or
+                    current['word'].lower() in next_entity['word'].lower() or
+                    next_entity['word'].lower() in current['word'].lower() or
+                    (force_merge_names and is_name_related)
+                ))
+            )
+            
+            if should_merge:
+                # For WordPiece tokens, remove the ## prefix
+                next_word = next_entity['word'].replace('##', '')
+                
+                # Merge entities
+                current = {
+                    'entity_group': 'PER' if is_name_related else current['entity_group'],  # Prefer PER for name entities
+                    'word': (current['word'] + (' ' if not is_wordpiece else '') + next_word),
+                    'start': current['start'],
+                    'end': next_entity['end'],
+                    'score': (current['score'] + next_entity['score']) / 2
+                }
+            else:
+                merged.append(current)
+                current = next_entity
+                
+        merged.append(current)
+        return merged
+    
+    def get_guaranteed_entities(self, query, max_gap=2):
         guaranteed_entities = []
         entities = self.extract_ner(query)
+        entities = self.merge_adjacent_entities(entities, max_gap)
+        entity_names = []
+        for entity in entities:
+            entity_names.append(query[entity['start']:entity['end']])
+        entities = entity_names
         for entity in entities:
             if entity in self.ner_entities_list:
                 guaranteed_entities.append(entity)
@@ -46,9 +104,7 @@ class Extractor:
         # Perform Named Entity Recognition
         ner_results = self.ner_pipeline(sentence)
 
-        # Extract entity names
-        entities = [entity['word'] for entity in ner_results if entity['entity_group'] in ['PER', 'LOC', 'ORG', 'MISC']]
-        return entities
+        return ner_results
 
     def extract_predicates(self, sentence):
         # Parse the sentence with SpaCy

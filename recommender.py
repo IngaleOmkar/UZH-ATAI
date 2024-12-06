@@ -55,7 +55,7 @@ class RecommendationResponder(Responder):
         return ent_vec
 
     def answer_query(self, query):
-        entities = self.entity_extractor.get_guaranteed_entities(query)
+        entities = self.entity_extractor.get_guaranteed_entities(query, max_gap=1)
         for entity in entities:
             if len(self.movies[self.movies['movie_name'].str.contains(entity)]) == 0:
                 # not a movie

@@ -91,41 +91,6 @@ class Agent:
             return "image:" + images[0]
         else:
             return "NF"
-        # results = {}
-        # query_type = self.question_classifier.classify(query)
-        # if query_type == "recommendation":
-        #     return self.answer_recommendation(query)
-        # else:
-        #     with ThreadPoolExecutor(max_workers=2) as executor:
-
-        #         futures = {
-        #             executor.submit(self.answer_factual, query): "factual",
-        #             executor.submit(self.answer_embedding, query): "embedding"
-        #         }
-
-        #         for future in as_completed(futures):
-        #             answer_type =  futures[future]
-        #             try:
-        #                 result = future.result()
-        #                 results[answer_type] = result
-        #             except:
-        #                 results[answer_type] = "None"
-            
-        #     answer_factual = results["factual"]
-        #     answer_embedding = results["embedding"]
-
-        #     answer_string = ""
-
-        #     if "very sorry" not in answer_factual:
-        #         # encode the answer in utf-8 to avoid encoding issues
-        #         if(type(answer_factual) == list):
-        #             answer_factual = " ".join(answer_factual)
-        #         # answer_factual = answer_factual.encode('utf-8')
-        #         answer_string += f"I think the answer is {answer_factual} (factual)"
-        #     elif "very sorry" not in answer_embedding:
-        #         answer_string += f"I think the answer is {answer_embedding} (embedding)"
-        #     else:
-        #         answer_string = "No answer was found."
             crowd_result = self.crowd.answer_query(query)
             if ("sorry" not in crowd_result.lower()):
                 return crowd_result
