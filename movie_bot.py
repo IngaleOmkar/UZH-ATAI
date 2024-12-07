@@ -86,52 +86,49 @@ class Agent:
             time.sleep(listen_freq)
 
     def answer(self, query):
-        images = self.image.answer_query(query)
-        if images:
-            return "image:" + images[0]
-        else:
-            return "NF"
-            crowd_result = self.crowd.answer_query(query)
-            if ("sorry" not in crowd_result.lower()):
-                return crowd_result
-            
-            print("continue with factual and embedding.")
+        results = {}
 
-            with ThreadPoolExecutor(max_workers=2) as executor:
+        with ThreadPoolExecutor(max_workers=5) as executor:
 
-                futures = {
-                    executor.submit(self.answer_factual, query): "factual",
-                    executor.submit(self.answer_embedding, query): "embedding"
-                }
+            futures = {
+                executor.submit(self.answer_factual, query): "factual",
+                executor.submit(self.answer_embedding, query): "embedding",
+                executor.submit(self.answer_recommendation, query): "recommendation",
+                executor.submit(self.answer_image, query): "image",
+                executor.submit(self.answer_crowd, query): "crowd"
+            }
 
-                for future in as_completed(futures):
-                    answer_type =  futures[future]
-                    try:
-                        result = future.result()
-                        results[answer_type] = result
-                    except:
-                        results[answer_type] = "None"
-            
-            answer_factual = results["factual"]
-            answer_embedding = results["embedding"]
+            for future in as_completed(futures):
+                answer_type =  futures[future]
+                try:
+                    result = future.result()
+                    results[answer_type] = result
+                except:
+                    results[answer_type] = "None"
+        
+        answer_factual = results["factual"]
+        answer_embedding = results["embedding"]
+        answer_recommendation = results["recommendation"]
+        answer_image = results["image"]
+        answer_crowd = results["crowd"]
 
-            print(f"answer factual: {answer_factual}")
-            print(f"answer embedding: {answer_embedding}")
-
-            answer_string = ""
-
-            if "very sorry" not in answer_factual:
-                # encode the answer in utf-8 to avoid encoding issues
-                if(type(answer_factual) == list):
-                    answer_factual = " ".join(answer_factual)
-                # answer_factual = answer_factual.encode('utf-8')
-                answer_string += f"I think the answer is {answer_factual} (factual)"
-            elif "very sorry" not in answer_embedding:
-                answer_string += f"I think the answer is {answer_embedding} (embedding)"
+        question_type = self.question_classifier.classify(query)
+        if(question_type == "qna"):
+            if answer_crowd is not None and "sorry" not in answer_crowd:
+                return answer_crowd
+            elif "sorry" not in answer_factual:
+                return answer_factual
+            elif "sorry" not in answer_embedding:
+                return answer_embedding
             else:
-                answer_string = "No answer was found."
-            
-        #     return answer_string
+                return "I am very sorry, but no answer was found."
+        elif(question_type == "recommendation"):
+            return answer_recommendation
+        elif(question_type == "image"):
+            return answer_image
+        else:
+            return "I am very sorry, but no answer was found."
+
 
     def answer_recommendation(self, query):
         answer_string = ""
@@ -169,6 +166,24 @@ class Agent:
     def answer_embedding(self, query):
         try:
             results = self.embeddings.answer_query(query)
+            answer_string = ""
+            for result in results:
+                answer_string += result + " \n"
+            return results
+        except Exception as e:
+            return "I am very sorry, but no answer was found."
+    
+    def answer_image(self, query):
+        try:
+            results = self.image.answer_query(query)
+            imgs = ["image:" + x for x in results]
+            return imgs
+        except Exception as e:
+            return "I am very sorry, but no answer was found."
+        
+    def answer_crowd(self, query):
+        try:
+            results = self.crowd.answer_query(query)
             return results
         except Exception as e:
             return "I am very sorry, but no answer was found."
