@@ -5,9 +5,9 @@ class QuestionClassifier():
 
     def __init__(self):
         self.model = None
-        self.model = BertForSequenceClassification.from_pretrained("data/q_classifier_qnr")
+        self.model = BertForSequenceClassification.from_pretrained("data/final_classification_model")
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-        self.id2tag = {0: 'qna', 1: 'recommendation'}
+        self.id2tag = {0: 'qna', 1: 'recommendation', 2: 'image'}
     
     def classify(self, query)->str:
         inputs = self.tokenizer(query, return_tensors="pt")

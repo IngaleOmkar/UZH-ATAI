@@ -1,4 +1,5 @@
 from responder import Responder
+from intent_classifier import EmbeddingBasedIntentClassifier
 
 class CrowdsourceResoponder(Responder):
     def __init__(self, data_repository, entity_extractor, intent_classifier):
@@ -9,6 +10,9 @@ class CrowdsourceResoponder(Responder):
         self.uri_to_label = self.data_repository.get_uri_to_label()
 
         self.crowd_data = data_repository.crowd_data
+
+        # new intent classifier with additional categories
+        self.intent_classifier = EmbeddingBasedIntentClassifier(data_repository)
 
         for batch_id, batch in self.crowd_data.items():
             for task_id, task in batch['tasks'].items():
