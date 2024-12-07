@@ -19,7 +19,7 @@ class FactualResponder(Responder):
         tag_emb, uri_emb = self.emb_intent_classifier.classify_query(" ".join(query.split(entities[0])))
 
         if(len(entities) == 0):
-            raise Exception("I'm sorry, I couldn't understand the query.")
+            return (False, "I'm sorry, I couldn't understand the query.")
         else:
             en_uri = self.label_to_uri[entities[0]]
 
@@ -27,11 +27,11 @@ class FactualResponder(Responder):
                 # both models agree
                 try:
                     if(tag_mlp in ["rating", "revenue", "budget", "release_date"] ):
-                        return self.triplets[(en_uri, uri_mlp)]
+                        return (True, self.triplets[(en_uri, uri_mlp)])
                     else:
                         ans = self.triplets[(en_uri, uri_mlp)]
                         ans_labels = [self.uri_to_label[label] for label in ans]
-                        return ", ".join(ans_labels)
+                        return (True, ", ".join(ans_labels))
                 except:
                     pass
             
@@ -40,23 +40,23 @@ class FactualResponder(Responder):
                 # models disagree,  try embedding model first
                 try:
                     if(tag_emb in ["rating", "revenue", "budget", "release_date"] ):
-                        return self.triplets[(en_uri, uri_emb)]
+                        return (True, self.triplets[(en_uri, uri_emb)])
                     else:
                         ans = self.triplets[(en_uri, uri_emb)]
                         ans_labels = [self.uri_to_label[label] for label in ans]
-                        return ", ".join(ans_labels)
+                        return (True, ", ".join(ans_labels))
                 except:
                     pass
 
                 # if embedding model fails, try mlp model
                 try:
                     if(tag_mlp in ["rating", "revenue", "budget", "release_date"] ):
-                        return self.triplets[(en_uri, uri_mlp)]
+                        return (True, self.triplets[(en_uri, uri_mlp)])
                     else:
                         ans = self.triplets[(en_uri, uri_mlp)]
                         ans_labels = [self.uri_to_label[label] for label in ans]
-                        return ", ".join(ans_labels)
+                        return (True, ", ".join(ans_labels))
                 except:
                     pass
 
-            raise Exception("I'm sorry, I couldn't find the answer to your question.")
+            return (False, "I'm sorry, I couldn't find the answer to your question.")

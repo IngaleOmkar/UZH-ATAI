@@ -26,12 +26,12 @@ class EmbeddingsResponder(Responder):
     
     def get_rel_vec(self, rel_label):
         if (rel_label not in self.lbl2rel):
-            raise Exception("Not found.")
+            return (False, "Not Found.")
         
         rel = self.lbl2rel[rel_label]
 
         if (rel not in self.rel2id):
-            raise Exception("Not found.")
+            return (False, "Not Found.")
 
         rel_id = self.rel2id[rel]        
         rel_vec = self.relation_emb[rel_id]
@@ -39,12 +39,12 @@ class EmbeddingsResponder(Responder):
     
     def get_ent_vec(self, ent_label):
         if (ent_label not in self.lbl2ent):
-            raise Exception("Not found.")
+            return (False, "Not Found.")
         
         ent = self.lbl2ent[ent_label]
 
         if (ent not in self.ent2id):
-            raise Exception("Not found.")
+            return (False, "Not Found.")
         
         ent_id = self.ent2id[ent]
 
@@ -60,7 +60,7 @@ class EmbeddingsResponder(Responder):
 
 
         if(len(entities) == 0):
-            raise Exception("I'm sorry, I couldn't understand the query.")
+            return (False, "I'm sorry, I couldn't understand the query.")
         else:
             # en_uri = self.label_to_uri[entities[0]]
 
@@ -72,7 +72,7 @@ class EmbeddingsResponder(Responder):
 
                 # find the closest entity 
                 idx = np.argmin(pairwise_distances(emb_sum.reshape(1, -1), self.entity_emb))
-                return self.ent2lbl[self.id2ent[idx]]
+                return (True, self.ent2lbl[self.id2ent[idx]])
 
             except:
                 try:
@@ -81,7 +81,7 @@ class EmbeddingsResponder(Responder):
 
                     # find the closest entity
                     idx = np.argmin(pairwise_distances(emb_sum.reshape(1, -1), self.entity_emb))
-                    return self.ent2lbl[self.id2ent[idx]]
+                    return (True, self.ent2lbl[self.id2ent[idx]])
                 except:
-                    raise Exception("I'm sorry, I couldn't find the answer to your question.")
+                    return (False, "I'm sorry, I couldn't find the answer to your question.")
 

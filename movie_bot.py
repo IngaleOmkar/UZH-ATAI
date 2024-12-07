@@ -6,7 +6,7 @@ from entity_extraction import Extractor
 from factual import FactualResponder
 from data_repository import DataRepository
 from intent_classifier import IntentClassifier, MLPBasedIntentClassifier, EmbeddingBasedIntentClassifier
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, TimeoutError, as_completed
 from embeddings import EmbeddingsResponder
 from recommender import RecommendationResponder
 from question_classifier import QuestionClassifier
@@ -91,42 +91,44 @@ class Agent:
         question_type = self.question_classifier.classify(query)
         print("Question type: ", question_type)
 
-        if(question_type == "qna"):
+        if question_type == "qna":
             results = {}
 
             with ThreadPoolExecutor(max_workers=3) as executor:
-
                 futures = {
                     executor.submit(self.answer_factual, query): "factual",
                     executor.submit(self.answer_embedding, query): "embedding",
                     executor.submit(self.answer_crowd, query): "crowd"
                 }
 
-                for future in as_completed(futures):
-                    answer_type =  futures[future]
+                # Wait for all futures to complete
+                wait(futures.keys(), return_when=ALL_COMPLETED)
+
+                # Process results after all threads have finished
+                for future in futures:
+                    answer_type = futures[future]
                     try:
                         result = future.result()
                         results[answer_type] = result
-                    except:
+                    except Exception as e:
+                        print(f"Error occurred while processing {answer_type}: {e}")
                         results[answer_type] = "None"
-                
-                answer_crowd = results["crowd"]
-                answer_factual = results["factual"]
-                answer_embedding = results["embedding"]
 
+            # Print results for debugging
             print(results)
-            
-            if "sorry" not in answer_crowd:
-                return answer_crowd
-            if "sorry" not in answer_factual:
-                return answer_factual
-            if "sorry" not in answer_embedding:
-                return answer_embedding
-            return "I am very sorry, but no answer was found."
-            
-        elif(question_type == "recommendation"):
+
+            # Return results based on priority order
+            for method in ["crowd", "factual", "embedding"]:
+                if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
+                    return self.answer_wrapper.wrap_answer(query, results[method][1]).content
+                    # return results[method][1]
+
+            # If no suitable answer is found, return None or a default response
+            return "No suitable answer was found."
+
+        elif question_type == "recommendation":
             return self.answer_recommendation(query)
-        elif(question_type == "image"):
+        elif question_type == "image":
             return self.answer_image(query)
         else:
             return "I am very sorry, but no answer was found."
@@ -150,21 +152,23 @@ class Agent:
     def answer_factual(self, query):
         try:
             results = self.factual.answer_query(query)
-            results = self.answer_wrapper.wrap_answer(query, results).content
-            return results
+            if results[0]:
+                answer_string = results[1] #self.answer_wrapper.wrap_answer(query, results[1]).content
+            print("returned fatcual: ", answer_string)
+            return (True, answer_string)
         except Exception as e:
-            return "I am very sorry, but no answer was found."
+            return (False, "I am very sorry, but no answer was found.")
 
     def answer_embedding(self, query):
         try:
             results = self.embeddings.answer_query(query)
             answer_string = ""
-            for result in results:
+            for result in results[1]:
                 answer_string += result + " \n"
-            answer_string = self.answer_wrapper.wrap_answer(query, answer_string).content
-            return answer_string
+            print("returned embedding: ", answer_string)
+            return (True, answer_string)
         except Exception as e:
-            return "I am very sorry, but no answer was found."
+            return (False, "I am very sorry, but no answer was found.")
     
     def answer_image(self, query):
         try:
@@ -177,9 +181,12 @@ class Agent:
     def answer_crowd(self, query):
         try:
             results = self.crowd.answer_query(query)
-            return results
+            if(results[0]):
+                answer_string = results[1] #self.answer_wrapper.wrap_answer(query, results[1]).content
+                print("returned crowd: ", answer_string)
+                return (True, answer_string)
         except Exception as e:
-            return "I am very sorry, but no answer was found."
+            return (False, "I am very sorry, but no answer was found.")
 
     @staticmethod
     def get_time():
