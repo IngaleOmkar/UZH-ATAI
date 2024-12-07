@@ -61,8 +61,7 @@ class Agent:
                     # Send a message to the corresponding chat room using the post_messages method of the room object.
                     try:
                         answer = self.answer(message.message)
-                        answer_str = answer.content
-                        answer = answer_str.encode('latin-1', errors='replace').decode('latin-1')
+                        answer = answer.encode('latin-1', errors='replace').decode('latin-1')
                         print(answer)
                         room.post_messages(answer)
 
@@ -141,7 +140,7 @@ class Agent:
             answer_string += "I think you might like "
             answer_string += FormatHelper.array_to_sentence(results)
             answer_string += ", " + justification + "."
-            answer_string = self.answer_wrapper.wrap_answer(query, answer_string)
+            answer_string = self.answer_wrapper.wrap_answer(query, answer_string).content
         except Exception as e:
             print(e)
             answer_string = "I am sorry, I cannot answer your question."
@@ -151,7 +150,7 @@ class Agent:
     def answer_factual(self, query):
         try:
             results = self.factual.answer_query(query)
-            results = self.answer_wrapper.wrap_answer(query, results)
+            results = self.answer_wrapper.wrap_answer(query, results).content
             return results
         except Exception as e:
             return "I am very sorry, but no answer was found."
@@ -162,7 +161,7 @@ class Agent:
             answer_string = ""
             for result in results:
                 answer_string += result + " \n"
-            answer_string = self.answer_wrapper.wrap_answer(query, answer_string)
+            answer_string = self.answer_wrapper.wrap_answer(query, answer_string).content
             return answer_string
         except Exception as e:
             return "I am very sorry, but no answer was found."
