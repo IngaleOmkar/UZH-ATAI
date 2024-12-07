@@ -120,7 +120,18 @@ class Agent:
             # Return results based on priority order
             for method in ["crowd", "factual", "embedding"]:
                 if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
-                    return self.answer_wrapper.wrap_answer(query, results[method][1]).content
+                    ans = ""
+                    if type(results[method][1]) is list or type(results[method][1]) is tuple:
+                        list_ans = results[method][1]
+                        intermidiate_ans = ""
+                        for i in range(len(list_ans)):
+                            intermidiate_ans += list_ans[i] + ", "
+                        ans = self.answer_wrapper.wrap_answer(query, results[method][1][0])
+                    else:
+                        ans = self.answer_wrapper.wrap_answer(query, results[method][1]) 
+                    if ans[0]:
+                        return ans[1].content
+                    return ans[1]
                     # return results[method][1]
 
             # If no suitable answer is found, return None or a default response
@@ -174,7 +185,12 @@ class Agent:
         try:
             results = self.image.answer_query(query)
             imgs = ["image:" + x for x in results]
-            return imgs.join(" \n")
+            print("returned image: ", imgs)
+            answer_string = ""
+            for img in imgs:
+                answer_string += img + " \n"
+            print("returned image string: ", answer_string)
+            return answer_string
         except Exception as e:
             return "I am very sorry, but no answer was found."
         
