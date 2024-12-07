@@ -81,10 +81,10 @@ class Agent:
         answer_string = ""
 
         try:
-            results = self.recommender.answer_query(query)
+            results, justification = self.recommender.answer_query(query)
             answer_string += "I think you might like "
             answer_string += self.array_to_sentence(results)
-            answer_string += "."
+            answer_string += "," + justification + "."
             answer_string = self.answer_wrapper.wrap_answer(query, answer_string)
         except Exception as e:
             print(e)

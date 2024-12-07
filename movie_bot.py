@@ -13,6 +13,7 @@ from question_classifier import QuestionClassifier
 from image import ImageResponder
 from crowd import CrowdsourceResoponder
 from formatter import FormatHelper
+from answer_wrapper import AnswerWrapper
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -32,6 +33,7 @@ class Agent:
         self.image = ImageResponder(self.data_repository, self.extractor, self.emb_intent_classifier)
         self.question_classifier = QuestionClassifier()
         self.crowd = CrowdsourceResoponder(self.data_repository, self.extractor, self.emb_intent_classifier)
+        self.answer_wrapper = AnswerWrapper()
 
         self.username = username
         # Initialize the Speakeasy Python framework and login.
@@ -59,7 +61,8 @@ class Agent:
                     # Send a message to the corresponding chat room using the post_messages method of the room object.
                     try:
                         answer = self.answer(message.message)
-                        answer = answer.encode('latin-1', errors='replace').decode('latin-1')
+                        answer_str = answer.content
+                        answer = answer_str.encode('latin-1', errors='replace').decode('latin-1')
                         print(answer)
                         room.post_messages(answer)
 
@@ -138,6 +141,7 @@ class Agent:
             answer_string += "I think you might like "
             answer_string += FormatHelper.array_to_sentence(results)
             answer_string += ", " + justification + "."
+            answer_string = self.answer_wrapper.wrap_answer(query, answer_string)
         except Exception as e:
             print(e)
             answer_string = "I am sorry, I cannot answer your question."
@@ -147,6 +151,7 @@ class Agent:
     def answer_factual(self, query):
         try:
             results = self.factual.answer_query(query)
+            results = self.answer_wrapper.wrap_answer(query, results)
             return results
         except Exception as e:
             return "I am very sorry, but no answer was found."
@@ -157,7 +162,8 @@ class Agent:
             answer_string = ""
             for result in results:
                 answer_string += result + " \n"
-            return results
+            answer_string = self.answer_wrapper.wrap_answer(query, answer_string)
+            return answer_string
         except Exception as e:
             return "I am very sorry, but no answer was found."
     
