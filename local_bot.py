@@ -13,6 +13,7 @@ from recommender import RecommendationResponder
 from question_classifier import QuestionClassifier
 from image import ImageResponder
 from crowd import CrowdsourceResoponder
+from answer_wrapper import AnswerWrapper
 
 class Agent:
     def __init__(self):
@@ -29,6 +30,7 @@ class Agent:
         self.image = ImageResponder(self.data_repository, self.extractor, self.emb_intent_classifier)
         self.question_classifier = QuestionClassifier()
         self.crowd = CrowdsourceResoponder(self.data_repository, self.extractor, self.emb_intent_classifier)
+        self.answer_wrapper = AnswerWrapper()
 
     def answer(self, query):
         question_type = self.question_classifier.classify(query)
@@ -59,11 +61,11 @@ class Agent:
 
             print(results)
             
-            if "sorry" not in answer_crowd:
+            if "sorry" not in answer_crowd.to_lower():
                 return answer_crowd
-            if "sorry" not in answer_factual:
+            if "sorry" not in answer_factual.to_lower():
                 return answer_factual
-            if "sorry" not in answer_embedding:
+            if "sorry" not in answer_embedding.to_lower():
                 return answer_embedding
             return "I am very sorry, but no answer was found."
             
@@ -83,6 +85,7 @@ class Agent:
             answer_string += "I think you might like "
             answer_string += self.array_to_sentence(results)
             answer_string += "."
+            answer_string = self.answer_wrapper.wrap_answer(query, answer_string)
         except Exception as e:
             print(e)
             answer_string = "I am sorry, I cannot answer your question."
@@ -104,6 +107,7 @@ class Agent:
     def answer_factual(self, query):
         try:
             results = self.factual.answer_query(query)
+            results = self.answer_wrapper.wrap_answer(query, results)
             return results
         except Exception as e:
             return "I am very sorry, but no answer was found."
@@ -114,7 +118,8 @@ class Agent:
             answer_string = ""
             for result in results:
                 answer_string += result + " \n"
-            return results
+            answer_string = self.answer_wrapper.wrap_answer(query, answer_string)
+            return answer_string
         except Exception as e:
             return "I am very sorry, but no answer was found."
     
