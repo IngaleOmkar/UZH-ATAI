@@ -54,7 +54,7 @@ class MLPBasedIntentClassifier(IntentClassifier):
         return tag, self.tag2uri[tag]
 
 class EmbeddingBasedIntentClassifier(IntentClassifier):
-    def __init__(self, data_repository):
+    def __init__(self, data_repository, additional_categories=[]):
         """
         Initialize the classifier with categories and load the embedding model.
         
@@ -64,6 +64,7 @@ class EmbeddingBasedIntentClassifier(IntentClassifier):
         """
         super().__init__(data_repository)
         self.categories = list(data_repository.get_rel2lbl().values())
+        self.categories.extend(additional_categories)
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         # Pre-compute embeddings for all categories
         self.category_embeddings = self.model.encode(self.categories)
