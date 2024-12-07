@@ -28,7 +28,9 @@ class RecommendationResponder(Responder):
         self.uri_to_label = self.data_repository.get_uri_to_label()
         self.label_to_uri = self.data_repository.get_label_to_uri()
 
-    def actor_query(self, actor):
+    def actor_query(self, actors):
+        actors_values = " ".join([f"wd:{actor}" for actor in actors])
+
         q = f"""
             PREFIX wd: <http://www.wikidata.org/entity/>
             PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -36,10 +38,12 @@ class RecommendationResponder(Responder):
 
             SELECT ?movie ?boxOffice ?rating
             WHERE {{
-                ?movie wdt:P161 wd:{actor} ;
+                ?movie wdt:P161 ?actor ;
                     wdt:P2142 ?boxOffice .
 
                 OPTIONAL {{ ?movie ddis:rating ?rating . }}
+
+                VALUES ?actor {{ {actors_values} }}
 
                 FILTER(!BOUND(?rating) || ?rating > 7.0)
             }}
@@ -133,9 +137,9 @@ class RecommendationResponder(Responder):
             else:
                 return lbls
         elif (len(actor_entities) > 0 and actor_entities[0] in self.lbl2ent): # ACTOR
-            ent = self.lbl2ent[actor_entities[0]]
-            ent = ent.split("/")[-1]
-            results = self.actor_query(ent)
+            ents = [self.lbl2ent[actor] for actor in actor_entities if actor in self.lbl2ent]
+            ents = [ent.split("/")[-1] for ent in ents]
+            results = self.actor_query(ents)
             lbls = [self.uri_to_label[ent] for ent in results]
             return lbls
         else: # SIMILARITY

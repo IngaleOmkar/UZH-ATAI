@@ -1,11 +1,9 @@
 recommendations todo:
 - replace pairwise dist with radius and overlap method 
 - Basic justifications
-- create fallback for sparql answers
 
 Question Classification
 - test
-
 
 archive to consider maybe:
 
