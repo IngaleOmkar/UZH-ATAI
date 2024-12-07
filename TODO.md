@@ -2,13 +2,11 @@ recommendations todo:
 - replace pairwise dist with radius and overlap method 
 - Basic justifications
 
-Question Classification
-- test
+NLP
+- any chance this could fuck up our answers -> very little liberty pls
 
-archive to consider maybe:
-
+test:
 - failing questions:
     - "how much did Peaceful Warrior make?"
     - "What is the country of citizenship of Cho Geun-hyeon?"
-
 - (?) LOTR and Forrest Gump -> should yield highly ranked movies -> very specific

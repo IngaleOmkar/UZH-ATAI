@@ -3,6 +3,7 @@ from responder import Responder
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from fuzzywuzzy import process
+from formatter import FormatHelper
 
 class RecommendationResponder(Responder):
         
@@ -127,21 +128,21 @@ class RecommendationResponder(Responder):
             genres = self.get_subgenres(genre)
             uris = [self.label_to_uri[g.lower()] for g in genres if g.lower() in self.label_to_uri]
             if (len(uris) == 0):
-                return self.get_external_movies(query)
+                return self.get_external_movies(query), f"because, according to our external data, these are popular movies of the genre {genre}"
             ents = [uri.split("/")[-1] for uri in uris]
             results = self.genre_query(ents)
             print(f"genre ents: {ents}")
             lbls = [self.uri_to_label[ent] for ent in results]
             if (len(lbls) == 0):
-                return self.get_external_movies(query)
+                return self.get_external_movies(query), f"because, according to our external data, these are popular movies of the genre {genre}"
             else:
-                return lbls
+                return lbls, f"because these are popular movies of the genre {genre}"
         elif (len(actor_entities) > 0 and actor_entities[0] in self.lbl2ent): # ACTOR
             ents = [self.lbl2ent[actor] for actor in actor_entities if actor in self.lbl2ent]
             ents = [ent.split("/")[-1] for ent in ents]
             results = self.actor_query(ents)
             lbls = [self.uri_to_label[ent] for ent in results]
-            return lbls
+            return lbls, f"because these are popular movies starring {FormatHelper.array_to_sentence(actor_entities)}"
         else: # SIMILARITY
             entity_vecs = []
             for ent in title_entities:
@@ -150,7 +151,6 @@ class RecommendationResponder(Responder):
                 except Exception as e:
                     print(f"entity {ent} could not be found in embedding: {e}")
                     
-
             entity_vec = np.mean(entity_vecs, axis=0)
 
             try:
@@ -168,8 +168,8 @@ class RecommendationResponder(Responder):
                 print(final_ents)
 
                 if len(final_ents) >= 3:
-                    return final_ents[:3]
+                    return final_ents[:3], f"because these movies similar to {FormatHelper.array_to_sentence(title_entities)}"
                 else:
-                    return final_ents
+                    return final_ents, f"because these movies similar to {FormatHelper.array_to_sentence(title_entities)}"
             except:
                 raise Exception("I'm sorry, I couldn't find the answer to your question.")

@@ -12,7 +12,7 @@ from recommender import RecommendationResponder
 from question_classifier import QuestionClassifier
 from image import ImageResponder
 from crowd import CrowdsourceResoponder
-
+from formatter import FormatHelper
 
 DEFAULT_HOST_URL = 'https://speakeasy.ifi.uzh.ch'
 listen_freq = 2
@@ -134,25 +134,15 @@ class Agent:
         answer_string = ""
 
         try:
-            results = self.recommender.answer_query(query)
+            results, justification = self.recommender.answer_query(query)
             answer_string += "I think you might like "
-            answer_string += self.array_to_sentence(results)
-            answer_string += "."
+            answer_string += FormatHelper.array_to_sentence(results)
+            answer_string += ", " + justification + "."
         except Exception as e:
             print(e)
             answer_string = "I am sorry, I cannot answer your question."
         
         return answer_string
-    
-    def array_to_sentence(self, arr):
-        if not arr:
-            return ""
-        elif len(arr) == 1:
-            return arr[0]
-        elif len(arr) == 2:
-            return " and ".join(arr)
-        else:
-            return ", ".join(arr[:-1]) + ", and " + arr[-1]
         
     def answer_factual(self, query):
         try:
