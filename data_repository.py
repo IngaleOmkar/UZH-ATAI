@@ -62,14 +62,19 @@ class DataRepository:
         # GET ALL ACTORS
 
         actor_query = """
-            PREFIX ex: <http://example.com/property/>
-            SELECT DISTINCT ?actor ?name
-            WHERE {
-            ?movie ex:hasActor ?actor .
-            ?actor ex:name ?name .
-        }"""
+            PREFIX wd: <http://www.wikidata.org/entity/>
+            PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-        self.list_of_all_actors = self.graph.query(actor_query)
+            SELECT DISTINCT ?name
+            WHERE {
+                ?movie wdt:P161 ?actor .
+                ?actor rdfs:label ?name .
+                FILTER(LANG(?name) = "en")  # Ensure the name is in English
+            }"""
+
+        actor_query_results = self.graph.query(actor_query)
+        self.list_of_all_actors = [str(row.name) for row in actor_query_results]
 
         print("========== Loading External Data ==========")
         self.movies = pd.read_csv('data/movies.csv')

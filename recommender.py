@@ -24,21 +24,59 @@ class RecommendationResponder(Responder):
         self.movies = self.data_repository.get_movies_df()
         self.list_of_all_genres = self.data_repository.get_list_of_all_genres()
         self.list_of_all_actors = self.data_repository.get_list_of_all_actors()
+        self.uri_to_label = self.data_repository.get_uri_to_label()
+        self.label_to_uri = self.data_repository.get_label_to_uri()
 
     def actor_query(self, actor):
         q = f"""
             PREFIX wd: <http://www.wikidata.org/entity/>
+            PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+            PREFIX ddis: <http://ddis.ch/atai/>
 
-            SELECT ?movie ?title ?popularity
+            SELECT DISTINCT ?movie ?rating
             WHERE {{
                 ?movie wdt:P161 wd:{actor} ;
-                wdt:P1476 ?title ;
-                wdt:P444 ?popularity .
+                    ddis:rating ?rating .
             }}
-            ORDER BY DESC(?popularity)
+            ORDER BY DESC(?rating)
+            LIMIT 3
+        """
+
+        # q_rating = f"""
+        #     PREFIX wd: <http://www.wikidata.org/entity/>
+        #     PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        #     PREFIX ddis: <http://ddis.ch/atai/>
+
+        #     SELECT DISTINCT ?movie ?rating
+        #     WHERE {{
+        #         ?movie ddis:rating ?rating .
+        #     }}
+        #     ORDER BY DESC(?rating)
+        #     LIMIT 100
+        # """
+
+        results = self.graph.query(q)
+        movies = [str(row.movie) for row in results]
+        print(f"nr movies: {len(movies)}")
+        return movies
+    
+    def genre_query(self, genre):
+        q = f"""
+            PREFIX wd: <http://www.wikidata.org/entity/>
+            PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+            PREFIX ddis: <http://ddis.ch/atai/>
+
+            SELECT ?movie ?rating
+            WHERE {{
+                ?movie wdt:P136 wd:{genre} ;
+                    ddis:rating ?rating .
+            }}
+            ORDER BY DESC(?rating)
             LIMIT 3"""
         
-        return self.graph.query(q)
+        results = self.graph.query(q)
+        movies = [str(row.movie) for row in results]
+        return movies
 
     def get_ent_vec(self, ent_label):
         if (ent_label not in self.lbl2ent):
@@ -55,35 +93,43 @@ class RecommendationResponder(Responder):
         return ent_vec
 
     def answer_query(self, query):
-        entities = self.entity_extractor.get_guaranteed_entities(query, max_gap=1)
-        for entity in entities:
-            if len(self.movies[self.movies['movie_name'].str.contains(entity)]) == 0:
-                # not a movie
-                entities.remove(entity)
-
+        entities = self.entity_extractor.get_guaranteed_entities(query)
         print(f"Identified entities: {entities}")
 
         title_entities = []
         actor_entities = []
+
+        print(f"first actor: {self.list_of_all_actors[0]}")
+
         for entity in entities:
+            if (entity in self.list_of_all_actors):
+                actor_entities.append(entity)
             if len(self.movies[self.movies['movie_name'].str.contains(entity)]) > 0:
                 title_entities.append(entity)
-            elif (entity in self.actors):
-                actor_entities.append(entity)
 
         print(f"Identified title entities: {title_entities}")
         print(f"Identified actor entities: {actor_entities}")
 
-        if(len(title_entities) == 0 and len(actor_entities) == 0):
+        if(len(title_entities) == 0 and len(actor_entities) == 0): # GENRE
             genre = process.extractOne(query, self.list_of_all_genres)[0]
-            genre = genre.upper()
-            list_of_relevant_movies = self.movies[self.movies['genre'].apply(lambda x: genre in x)]
-            return list_of_relevant_movies['movie_name'].tolist()[:3]
-        elif (len(actor_entities) > 0 and actor_entities[0] in self.lbl2ent):
+            print(f"genre: {genre}")
+            if (genre in self.label_to_uri):
+                uri = self.label_to_uri[genre]
+                ent = uri.split("/")[-1]
+                results = self.genre_query(ent)
+                lbls = [self.uri_to_label[ent] for ent in results]
+                return lbls
+            else:
+                genre = genre.upper()
+                list_of_relevant_movies = self.movies[self.movies['genre'].apply(lambda x: genre in x)]
+                return list_of_relevant_movies['movie_name'].tolist()[:3]
+        elif (len(actor_entities) > 0 and actor_entities[0] in self.lbl2ent): # ACTOR
             ent = self.lbl2ent[actor_entities[0]]
-            print(f"actor entity: {ent}")
-            return self.actor_query(ent)
-        else:
+            ent = ent.split("/")[-1]
+            results = self.actor_query(ent)
+            lbls = [self.uri_to_label[ent] for ent in results]
+            return lbls
+        else: # SIMILARITY
             entity_vecs = []
             for ent in title_entities:
                 try: 
