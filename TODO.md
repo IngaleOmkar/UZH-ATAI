@@ -1,8 +1,6 @@
 recommendations todo:
 - replace pairwise dist with radius and overlap method 
-- actor based recommendations
 - Basic justifications
-- make more popular genre suggestions
 - create fallback for sparql answers
 
 Question Classification

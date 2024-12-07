@@ -141,8 +141,6 @@ class Agent:
         except Exception as e:
             print(e)
             answer_string = "I am sorry, I cannot answer your question."
-
-        print(answer_string)
         
         return answer_string
     

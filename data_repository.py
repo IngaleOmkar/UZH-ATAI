@@ -70,11 +70,45 @@ class DataRepository:
             WHERE {
                 ?movie wdt:P161 ?actor .
                 ?actor rdfs:label ?name .
-                FILTER(LANG(?name) = "en")  # Ensure the name is in English
+                FILTER(LANG(?name) = "en")
             }"""
 
         actor_query_results = self.graph.query(actor_query)
         self.list_of_all_actors = [str(row.name) for row in actor_query_results]
+
+        genre_query = """
+            PREFIX wd: <http://www.wikidata.org/entity/>
+            PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+            SELECT DISTINCT ?genre ?name
+            WHERE {
+                ?movie wdt:P136 ?genre .  # Relation for genres
+                ?genre rdfs:label ?name .
+                FILTER(LANG(?name) = "en")
+            }
+        """
+
+        genre_query_results = self.graph.query(genre_query)
+        self.list_of_all_genres_graph = [str(row.name) for row in genre_query_results]
+
+        title_query = """
+            PREFIX wd: <http://www.wikidata.org/entity/>
+            PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+            SELECT DISTINCT ?item ?title
+            WHERE {
+                ?item wdt:P31 ?type .
+                ?item rdfs:label ?title .
+                FILTER(LANG(?title) = "en")
+                VALUES ?type {wd:Q11424 wd:Q5398426}
+            }
+        """
+
+        title_query_results = self.graph.query(title_query)
+        self.list_of_all_titles = [str(row.title) for row in title_query_results]
+
 
         print("========== Loading External Data ==========")
         self.movies = pd.read_csv('data/movies.csv')
@@ -109,6 +143,9 @@ class DataRepository:
       
     def get_movies_df(self):
         return self.movies
+    
+    def get_list_of_all_genres_graph(self):
+        return self.list_of_all_genres_graph
     
     def get_list_of_all_genres(self):
         return self.list_of_all_genres
