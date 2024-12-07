@@ -89,8 +89,22 @@ class DataRepository:
             }
         """
 
-        genre_query_results = self.graph.query(genre_query)
-        self.list_of_all_genres_graph = [str(row.name) for row in genre_query_results]
+        fixed_genres = [
+            "action", "adventure", "comedy", "drama", "horror", "romance", 
+            "sci-fi", "fantasy", "mystery", "thriller", "animation", "documentary", 
+            "crime", "musical", "family", "western", "war", "history", "biography"
+        ]
+
+        genre_file = "data/genres.csv"
+        if os.path.exists(genre_file):
+            self.list_of_all_genres_graph = pd.read_csv(genre_file)['Genre'].tolist()
+            print("Loaded genres from CSV.")
+        else:
+            genre_query_results = self.graph.query(genre_query)
+            self.list_of_all_genres_graph = [str(row.name) for row in genre_query_results]
+            self.list_of_all_genres_graph.extend(fixed_genres)
+            genre_df = pd.DataFrame(self.list_of_all_genres_graph, columns=['Genre'])
+            genre_df.to_csv(genre_file, index=False)
 
         title_query = """
             PREFIX wd: <http://www.wikidata.org/entity/>

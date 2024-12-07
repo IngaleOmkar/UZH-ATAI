@@ -82,6 +82,29 @@ class RecommendationResponder(Responder):
         results = self.graph.query(q)
         movies = [str(row.movie) for row in results]
         return movies
+    
+    def movie_query(self):
+
+        q = f"""
+            PREFIX wd: <http://www.wikidata.org/entity/>
+            PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+            PREFIX ddis: <http://ddis.ch/atai/>
+
+            SELECT ?movie ?boxOffice
+            WHERE {{
+                ?movie wdt:P2142 ?boxOffice .
+                OPTIONAL {{ ?movie ddis:rating ?rating . }}
+
+                FILTER(!BOUND(?rating) || ?rating > 7.5)
+            }}
+            ORDER BY DESC(?boxOffice)
+            LIMIT 3
+        """
+
+        results = self.graph.query(q)
+        movies = [str(row.movie) for row in results]
+        print(f"nr movies: {len(movies)}")
+        return movies[:3]
 
     def get_ent_vec(self, ent_label):
         if (ent_label not in self.lbl2ent):
@@ -106,6 +129,11 @@ class RecommendationResponder(Responder):
         genre = genre.upper()
         list_of_relevant_movies = self.movies[self.movies['genre'].apply(lambda x: genre in x)]
         return list_of_relevant_movies['movie_name'].tolist()[:3]
+    
+    def get_popular_movies(self):
+        results = self.movie_query()
+        lbls = [self.uri_to_label[uri] for uri in results]
+        return lbls
 
     def answer_query(self, query):
         entities = self.entity_extractor.get_guaranteed_entities(query)
@@ -117,24 +145,27 @@ class RecommendationResponder(Responder):
         for entity in entities:
             if (entity in self.list_of_all_actors):
                 actor_entities.append(entity)
-            if len(self.movies[self.movies['movie_name'].str.contains(entity)]) > 0:
+            elif len(self.movies[self.movies['movie_name'].str.contains(entity)]) > 0:
                 title_entities.append(entity)
 
         print(f"Identified title entities: {title_entities}")
         print(f"Identified actor entities: {actor_entities}")
 
         if(len(title_entities) == 0 and len(actor_entities) == 0): # GENRE
-            genre = process.extractOne(query, self.list_of_all_genres_graph)[0]
+            match = process.extractOne(query, self.list_of_all_genres_graph)
+            genre = match[0]
             genres = self.get_subgenres(genre)
             uris = [self.label_to_uri[g.lower()] for g in genres if g.lower() in self.label_to_uri]
             if (len(uris) == 0):
-                return self.get_external_movies(query), f"because, according to our external data, these are popular movies of the genre {genre}"
+                return self.get_popular_movies(), "because these are very popular movies"
+                # return self.get_external_movies(query), f"because, according to our external data, these are popular movies of the genre {genre}"
             ents = [uri.split("/")[-1] for uri in uris]
             results = self.genre_query(ents)
             print(f"genre ents: {ents}")
             lbls = [self.uri_to_label[ent] for ent in results]
             if (len(lbls) == 0):
-                return self.get_external_movies(query), f"because, according to our external data, these are popular movies of the genre {genre}"
+                return self.get_popular_movies(), "because these are very popular movies"
+                # return self.get_external_movies(query), f"because, according to our external data, these are popular movies of the genre {genre}"
             else:
                 return lbls, f"because these are popular movies of the genre {genre}"
         elif (len(actor_entities) > 0 and actor_entities[0] in self.lbl2ent): # ACTOR
