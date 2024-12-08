@@ -88,10 +88,10 @@ class Agent:
             time.sleep(listen_freq)
 
     def answer(self, query):
-        # question_type = self.question_classifier.classify(query)
-        # print("Question type: ", question_type)
+        question_type = self.question_classifier.classify(query)
+        print("Question type: ", question_type)
 
-        # if question_type == "qna":
+        if question_type == "qna":
             results = {}
 
             with ThreadPoolExecutor(max_workers=3) as executor:
@@ -148,12 +148,12 @@ class Agent:
             # If no suitable answer is found, return None or a default response
             return "No suitable answer was found."
 
-        # elif question_type == "recommendation":
-        #     return self.answer_recommendation(query)
-        # elif question_type == "image":
-        #     return self.answer_image(query)
-        # else:
-        #     return "I am very sorry, but no answer was found."
+        elif question_type == "recommendation":
+            return self.answer_recommendation(query)
+        elif question_type == "image":
+            return self.answer_image(query)
+        else:
+            return "I am very sorry, but no answer was found."
 
 
     def answer_recommendation(self, query):
