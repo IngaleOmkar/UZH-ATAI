@@ -49,15 +49,18 @@ class CrowdsourceResoponder(Responder):
 
             if ((entity, relation) in self.answer_dict):
                 answer = self.answer_dict[(entity, relation)]['Answer']
+                result =  self.answer_dict[(entity, relation)]['Result']
                 parts = answer.split(":")
-                if (len(parts) == 2 and parts[0] == "wd"):
-                    uri = f"http://www.wikidata.org/entity/{parts[1]}"
-                    if (uri not in self.uri_to_label):
-                        return (False, "Sorry, coulnd't find the answer.")
-                    label = self.uri_to_label[uri]
-                    return  (True, f"The answer is {label}.\n [Crowd, inter-rater agreement {self.answer_dict[(entity, relation)]['Kappa']}, The answer distribution for this specific task was {self.answer_dict[(entity, relation)]['Support Votes']} support vote(s), {self.answer_dict[(entity, relation)]['Reject Votes']} reject vote(s)]")
-                else:
-                    return (True, f"The answer is {self.answer_dict[(entity, relation)]['Answer']}.\n [Crowd, inter-rater agreement {self.answer_dict[(entity, relation)]['Kappa']}, The answer distribution for this specific task was {self.answer_dict[(entity, relation)]['Support Votes']} support vote(s), {self.answer_dict[(entity, relation)]['Reject Votes']} reject vote(s)]")
+                kappa = round(self.answer_dict[(entity, relation)]['Kappa'], 5)
+                return (True, f"[Crowd, inter-rater agreement {kappa}, The answer distribution for this specific task was {self.answer_dict[(entity, relation)]['Support Votes']} support vote(s), {self.answer_dict[(entity, relation)]['Reject Votes']} reject vote(s)]")
+                # if (len(parts) == 2 and parts[0] == "wd"):
+                #     uri = f"http://www.wikidata.org/entity/{parts[1]}"
+                #     if (uri not in self.uri_to_label):
+                #         return (False, "Sorry, coulnd't find the answer.")
+                #     label = self.uri_to_label[uri]
+                #     return  (True, f"[Crowd, inter-rater agreement {kappa}, The answer distribution for this specific task was {self.answer_dict[(entity, relation)]['Support Votes']} support vote(s), {self.answer_dict[(entity, relation)]['Reject Votes']} reject vote(s)]")
+                # else:
+                #     return (True, f"[Crowd, inter-rater agreement {kappa}, The answer distribution for this specific task was {self.answer_dict[(entity, relation)]['Support Votes']} support vote(s), {self.answer_dict[(entity, relation)]['Reject Votes']} reject vote(s)]")
             else:
                 return (False, "Sorry, I could not find an answer")
         except Exception as e:

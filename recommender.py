@@ -139,6 +139,12 @@ class RecommendationResponder(Responder):
         entities = self.entity_extractor.get_guaranteed_entities(query)
         print(f"Identified entities: {entities}")
 
+        print(self.data_repository.DDIS["ddis:indirectSubclassOf"])
+        print(self.data_repository.DDIS["ddis:indirectSubclassOf"] in self.ent2lbl)
+        print(self.data_repository.DDIS["ddis:indirectSubclassOf"] in self.rel2lbl)
+        print("ddis:indirectSubclassOf" in self.rel2lbl)
+        print(self.data_repository.DDIS["ddis:indirectSubclassOf"] in self.uri_to_label)
+
         title_entities = []
         actor_entities = []
 

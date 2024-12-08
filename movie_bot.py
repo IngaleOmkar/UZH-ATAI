@@ -118,22 +118,27 @@ class Agent:
             print(results)
 
             # Return results based on priority order
-            for method in ["crowd", "factual", "embedding"]:
-                if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
-                    ans = ""
-                    if type(results[method][1]) is list or type(results[method][1]) is tuple:
-                        list_ans = results[method][1]
-                        intermidiate_ans = ""
-                        for i in range(len(list_ans)):
-                            intermidiate_ans += list_ans[i] + ", "
-                        ans = self.answer_wrapper.wrap_answer(query, results[method][1][0])
-                    else:
-                        ans = self.answer_wrapper.wrap_answer(query, results[method][1]) 
-                    if ans[0]:
-                        return ans[1].content
-                    return ans[1]
-                    # return results[method][1]
+            try:
+                for method in ["factual", "embedding"]:
+                    if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
+                        print(f"results: {results[method]}")
+                        llm = self.answer_wrapper.wrap_answer(query, results[method][1])
+                        print(f"llm res: {llm}")
+                        if llm[0]:
+                            ans = llm[1].content
+                        else:
+                            ans = results[method][1]
 
+                        print(f"ans: {ans}")
+
+                        if results.get("crowd") is not None and type(results["crowd"]) is not str and results["crowd"][0] == True:
+                            ans += " " + results["crowd"][1]
+
+                        print(ans)
+                        return ans
+            except Exception as e:
+                return "No suitable answer was found."
+                
             # If no suitable answer is found, return None or a default response
             return "No suitable answer was found."
 
@@ -163,21 +168,18 @@ class Agent:
     def answer_factual(self, query):
         try:
             results = self.factual.answer_query(query)
-            if results[0]:
-                answer_string = results[1] #self.answer_wrapper.wrap_answer(query, results[1]).content
-            print("returned fatcual: ", answer_string)
-            return (True, answer_string)
+            # if results[0]:
+            #     answer_string = results[1] #self.answer_wrapper.wrap_answer(query, results[1]).content
+            # print("returned fatcual: ", answer_string)
+            print(f"fac ans: {results}")
+            return results
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
 
     def answer_embedding(self, query):
         try:
             results = self.embeddings.answer_query(query)
-            answer_string = ""
-            for result in results[1]:
-                answer_string += result + " \n"
-            print("returned embedding: ", answer_string)
-            return (True, answer_string)
+            return results
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
     
@@ -197,10 +199,8 @@ class Agent:
     def answer_crowd(self, query):
         try:
             results = self.crowd.answer_query(query)
-            if(results[0]):
-                answer_string = results[1] #self.answer_wrapper.wrap_answer(query, results[1]).content
-                print("returned crowd: ", answer_string)
-                return (True, answer_string)
+            print(f"crowd ans: {results}")
+            return results
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
 

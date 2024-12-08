@@ -1,4 +1,5 @@
 from responder import Responder
+from formatter import FormatHelper
 
 
 class FactualResponder(Responder):
@@ -27,11 +28,11 @@ class FactualResponder(Responder):
                 # both models agree
                 try:
                     if(tag_mlp in ["rating", "revenue", "budget", "release_date"] ):
-                        return (True, self.triplets[(en_uri, uri_mlp)])
+                        return (True, self.triplets[(en_uri, uri_mlp)][0])
                     else:
                         ans = self.triplets[(en_uri, uri_mlp)]
                         ans_labels = [self.uri_to_label[label] for label in ans]
-                        return (True, ", ".join(ans_labels))
+                        return (True, FormatHelper.array_to_sentence(ans_labels))
                 except:
                     pass
             
@@ -40,22 +41,22 @@ class FactualResponder(Responder):
                 # models disagree,  try embedding model first
                 try:
                     if(tag_emb in ["rating", "revenue", "budget", "release_date"] ):
-                        return (True, self.triplets[(en_uri, uri_emb)])
+                        return (True, self.triplets[(en_uri, uri_emb)][0])
                     else:
                         ans = self.triplets[(en_uri, uri_emb)]
                         ans_labels = [self.uri_to_label[label] for label in ans]
-                        return (True, ", ".join(ans_labels))
+                        return (True, FormatHelper.array_to_sentence(ans_labels))
                 except:
                     pass
 
                 # if embedding model fails, try mlp model
                 try:
                     if(tag_mlp in ["rating", "revenue", "budget", "release_date"] ):
-                        return (True, self.triplets[(en_uri, uri_mlp)])
+                        return (True, self.triplets[(en_uri, uri_mlp)][0])
                     else:
                         ans = self.triplets[(en_uri, uri_mlp)]
                         ans_labels = [self.uri_to_label[label] for label in ans]
-                        return (True, ", ".join(ans_labels))
+                        return (True, FormatHelper.array_to_sentence(ans_labels))
                 except:
                     pass
 

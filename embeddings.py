@@ -2,6 +2,7 @@ from sklearn.metrics import pairwise_distances
 from responder import Responder
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+from formatter import FormatHelper
 
 class EmbeddingsResponder(Responder):
 
@@ -72,7 +73,9 @@ class EmbeddingsResponder(Responder):
 
                 # find the closest entity 
                 idx = np.argmin(pairwise_distances(emb_sum.reshape(1, -1), self.entity_emb))
-                return (True, self.ent2lbl[self.id2ent[idx]])
+                ans = FormatHelper.array_to_sentence(self.ent2lbl[self.id2ent[idx]])
+                print(ans)
+                return (True, ans)
 
             except:
                 try:
@@ -81,7 +84,9 @@ class EmbeddingsResponder(Responder):
 
                     # find the closest entity
                     idx = np.argmin(pairwise_distances(emb_sum.reshape(1, -1), self.entity_emb))
-                    return (True, self.ent2lbl[self.id2ent[idx]])
+                    ans = FormatHelper.array_to_sentence(self.ent2lbl[self.id2ent[idx]])
+                    print(ans)
+                    return (True, ans)
                 except:
                     return (False, "I'm sorry, I couldn't find the answer to your question.")
 

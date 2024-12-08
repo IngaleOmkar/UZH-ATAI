@@ -102,7 +102,7 @@ for task, result in all_tasks.items():
         ent = create_entity_uri(task[0])
         rel = create_relation_uri(task[1])
         obj = create_object_uri(task[2])
-    
+        print(f"ent {ent}, rel {rel}, obj {obj}")
         insert(g, ent, rel, obj)
     else:
         try:
