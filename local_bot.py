@@ -100,7 +100,8 @@ class Agent:
             answer_string += "I think you might like "
             answer_string += FormatHelper.array_to_sentence(results)
             answer_string += ", " + justification + "."
-            answer_string = self.answer_wrapper.wrap_answer(query, answer_string).content
+            # answer_string = self.answer_wrapper.wrap_answer(query, answer_string).content
+            print("returning recommendation: ", answer_string)
         except Exception as e:
             print(e)
             answer_string = "I am sorry, I cannot answer your question."
