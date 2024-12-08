@@ -23,6 +23,7 @@ class ImageResponder(Responder):
     def answer_query(self, query):
         entities = self.entity_extractor.get_guaranteed_entities(query)
         images = []
+        answer_string = ""
         if len(entities) == 0:
             raise Exception("I'm sorry, I couldn't understand the query.")
         else:
@@ -43,24 +44,28 @@ class ImageResponder(Responder):
                     good_matches = self.image_df[self.image_df['cast'].apply(lambda x: len(x) == 1 and x[0] == id)]
                     if not good_matches.empty:
                         images.append(good_matches.iloc[0]['img'].split(".jpg")[0])
+                        answer_string += "Here is an image of " + entity + ":\nimage:" + images[-1] + "\n"
                         continue
                     else:
                         possible_matches = self.image_df[self.image_df['cast'].apply(lambda x: any(item in possible_ids for item in x))]
                         if not possible_matches.empty:
                             images.append(possible_matches.iloc[0]['img'].split(".jpg")[0])
+                            answer_string += "Here is an image of " + entity + ":\nimage:" + images[-1] + "\n"
                             continue
                         
                 good_movie_matches = self.poster_df[self.poster_df['movie'].apply(lambda x: x[0] in possible_ids)]
                 if not good_movie_matches.empty:
                     print("good_movie_matches: ", good_movie_matches)
                     images.append(good_movie_matches.iloc[0]['img'].split(".jpg")[0])
+                    answer_string += "Here is a poster of " + entity + ":\nimage:" + images[-1] + "\n"
                     continue
                 else:
                     possible_movie_matches = self.poster_df[self.poster_df['movie'].apply(lambda x: any(item in possible_ids for item in x))]
                     if not possible_movie_matches.empty:
                         print("possible_movie_matches: ", possible_movie_matches)
                         images.append(possible_movie_matches.iloc[0]['img'].split(".jpg")[0])
+                        answer_string += "Here is a poster of " + entity + ":\nimage:" + images[-1] + "\n"
                         continue
             if(len(images) == 0):
                 raise Exception("I'm sorry, I couldn't find any images for this entity.")
-            return images
+            return images, answer_string
