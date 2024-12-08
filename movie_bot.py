@@ -186,13 +186,13 @@ class Agent:
     
     def answer_image(self, query):
         try:
-            results = self.image.answer_query(query)
-            imgs = ["image:" + x for x in results]
-            print("returned image: ", imgs)
-            answer_string = ""
-            for img in imgs:
-                answer_string += img + " \n"
-            print("returned image string: ", answer_string)
+            results_arr, answer_string = self.image.answer_query(query)
+            # imgs = ["image:" + x for x in results]
+            # print("returned image: ", imgs)
+            # answer_string = ""
+            # for img in imgs:
+            #     answer_string += img + " \n"
+            # print("returned image string: ", answer_string)
             return answer_string
         except Exception as e:
             return "I am very sorry, but no answer was found."
