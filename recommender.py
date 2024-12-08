@@ -199,8 +199,8 @@ class RecommendationResponder(Responder):
                 print(final_ents)
 
                 if len(final_ents) >= 3:
-                    return final_ents[:3], f"because these movies similar to the movies you named."
+                    return final_ents[:3], f"because these movies similar to the movies you named"
                 else:
-                    return final_ents, f"because these movies similar to the movies you named."
+                    return final_ents, f"because these movies similar to the movies you named"
             except:
                 raise Exception("I'm sorry, I couldn't find the answer to your question.")
