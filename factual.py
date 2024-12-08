@@ -32,7 +32,7 @@ class FactualResponder(Responder):
                     else:
                         ans = self.triplets[(en_uri, uri_mlp)]
                         ans_labels = [self.uri_to_label[label] for label in ans]
-                        return (True, FormatHelper.array_to_sentence(ans_labels))
+                        return (True, ans_labels[0])
                 except:
                     pass
             
@@ -45,7 +45,7 @@ class FactualResponder(Responder):
                     else:
                         ans = self.triplets[(en_uri, uri_emb)]
                         ans_labels = [self.uri_to_label[label] for label in ans]
-                        return (True, FormatHelper.array_to_sentence(ans_labels))
+                        return (True, ans_labels[0])
                 except:
                     pass
 
@@ -56,7 +56,7 @@ class FactualResponder(Responder):
                     else:
                         ans = self.triplets[(en_uri, uri_mlp)]
                         ans_labels = [self.uri_to_label[label] for label in ans]
-                        return (True, FormatHelper.array_to_sentence(ans_labels))
+                        return (True, ans_labels[0])
                 except:
                     pass
 

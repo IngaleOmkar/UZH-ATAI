@@ -73,7 +73,7 @@ class EmbeddingsResponder(Responder):
 
                 # find the closest entity 
                 idx = np.argmin(pairwise_distances(emb_sum.reshape(1, -1), self.entity_emb))
-                ans = FormatHelper.array_to_sentence(self.ent2lbl[self.id2ent[idx]])
+                ans = self.ent2lbl[self.id2ent[idx]]
                 print(ans)
                 return (True, ans)
 
@@ -84,7 +84,7 @@ class EmbeddingsResponder(Responder):
 
                     # find the closest entity
                     idx = np.argmin(pairwise_distances(emb_sum.reshape(1, -1), self.entity_emb))
-                    ans = FormatHelper.array_to_sentence(self.ent2lbl[self.id2ent[idx]])
+                    ans = self.ent2lbl[self.id2ent[idx]]
                     print(ans)
                     return (True, ans)
                 except:
