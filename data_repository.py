@@ -29,9 +29,12 @@ class DataRepository:
 
         # Loading graph
         print("========== Loading graph ==========")
-        if (os.path.exists('data/14_graph_udpated.nt')):
+        path = os.path.abspath('data/14_graph_updated.nt')
+        if (os.path.exists(path)):
+            print("loading updated graph")
             self.graph = rdflib.Graph().parse('data/14_graph_updated.nt', format='turtle')
         else:
+            print("loading og graph")
             self.graph = rdflib.Graph().parse('data/14_graph.nt', format='turtle')
 
         print("========== Loading data for factual QA ==========")

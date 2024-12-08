@@ -122,14 +122,7 @@ class Agent:
                 for method in ["factual", "embedding"]:
                     if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
                         print(f"results: {results[method]}")
-                        if type(results[method][1]) is list or type(results[method][1]) is tuple:
-                            list_ans = results[method][1]
-                            intermidiate_ans = ""
-                            for i in range(len(list_ans)):
-                                intermidiate_ans += list_ans[i] + ", "
-                            llm = self.answer_wrapper.wrap_answer(query, intermidiate_ans)
-                        else: 
-                            llm = self.answer_wrapper.wrap_answer(query, results[method][1])
+                        llm = self.answer_wrapper.wrap_answer(query, results[method][1])
                         print(f"llm res: {llm}")
                         if llm[0]:
                             ans = llm[1].content
@@ -174,19 +167,14 @@ class Agent:
     def answer_factual(self, query):
         try:
             results = self.factual.answer_query(query)
-            if results[0]:
-                answer_string = results[1] 
-            print("returned fatcual: ", answer_string)
-            return (True, answer_string)
+            return results
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
 
     def answer_embedding(self, query):
         try:
             results = self.embeddings.answer_query(query)
-            answer_string = results[1]
-            print("returned embedding: ", answer_string)
-            return (True, answer_string)
+            return results
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
     
@@ -206,10 +194,7 @@ class Agent:
     def answer_crowd(self, query):
         try:
             results = self.crowd.answer_query(query)
-            if(results[0]):
-                answer_string = results[1] 
-                print("returned crowd: ", answer_string)
-                return (True, answer_string)
+            return results
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
 
