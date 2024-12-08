@@ -117,6 +117,8 @@ class Agent:
             # Print results for debugging
             print(results)
 
+            answer_technique = None
+
             # Return results based on priority order
             try:
                 for method in ["factual", "embedding"]:
@@ -132,7 +134,11 @@ class Agent:
                         print(f"ans: {ans}")
 
                         if results.get("crowd") is not None and type(results["crowd"]) is not str and results["crowd"][0] == True:
+                            answer_technique = "crowd"
                             ans += " " + results["crowd"][1]
+
+                        if answer_technique is not None:
+                            ans += "\n\nThis answer is of type: " + answer_technique
 
                         print(ans)
                         return ans

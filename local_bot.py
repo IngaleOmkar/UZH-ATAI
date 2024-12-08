@@ -64,25 +64,34 @@ class Agent:
             # Print results for debugging
             print(results)
 
-            # Return results based on priority order
-            for method in ["crowd", "factual", "embedding"]:
-                if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
-                    if method == "crowd":
-                        # Just return the answer as is
-                        return results[method][1]
-                    ans = ""
-                    if type(results[method][1]) is list or type(results[method][1]) is tuple:
-                        list_ans = results[method][1]
-                        intermidiate_ans = ""
-                        for i in range(len(list_ans)):
-                            intermidiate_ans += list_ans[i] + ", "
-                        ans = self.answer_wrapper.wrap_answer(query, results[method][1][0])
-                    else:
-                        ans = self.answer_wrapper.wrap_answer(query, results[method][1]) 
-                    if ans[0]:
-                        return ans[1].content
-                    return ans[1]
+            answer_technique = None
 
+            # Return results based on priority order
+            try:
+                for method in ["factual", "embedding"]:
+                    if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
+                        answer_technique = method
+                        print(f"results: {results[method]}")
+                        llm = self.answer_wrapper.wrap_answer(query, results[method][1])
+                        print(f"llm res: {llm}")
+                        if llm[0]:
+                            ans = llm[1].content
+                        else:
+                            ans = results[method][1]
+
+                        print(f"ans: {ans}")
+
+                        if results.get("crowd") is not None and type(results["crowd"]) is not str and results["crowd"][0] == True:
+                            answer_technique = "crowd"
+                            ans += " " + results["crowd"][1]
+                        
+                        ans += "\n\nThis answer is of type: " + answer_technique
+
+                        print(ans)
+                        return ans
+            except Exception as e:
+                return "No suitable answer was found."
+                
             # If no suitable answer is found, return None or a default response
             return "No suitable answer was found."
 
@@ -111,19 +120,14 @@ class Agent:
     def answer_factual(self, query):
         try:
             results = self.factual.answer_query(query)
-            if results[0]:
-                answer_string = results[1] 
-            print("returned fatcual: ", answer_string)
-            return (True, answer_string)
+            return results
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
 
     def answer_embedding(self, query):
         try:
             results = self.embeddings.answer_query(query)
-            answer_string = results[1]
-            print("returned embedding: ", answer_string)
-            return (True, answer_string)
+            return results
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
     
@@ -143,10 +147,7 @@ class Agent:
     def answer_crowd(self, query):
         try:
             results = self.crowd.answer_query(query)
-            if(results[0]):
-                answer_string = results[1] 
-                print("returned crowd: ", answer_string)
-                return (True, answer_string)
+            return results
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
 
