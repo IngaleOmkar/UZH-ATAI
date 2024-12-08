@@ -1,3 +1,6 @@
+- date error crowdsorucing
+- rec tuple error
+
 test:
 - failing questions:
     - "how much did Peaceful Warrior make?"
