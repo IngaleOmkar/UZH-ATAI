@@ -70,7 +70,6 @@ class Agent:
             try:
                 for method in ["factual", "embedding"]:
                     if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
-                        answer_technique = method
                         print(f"results: {results[method]}")
                         llm = self.answer_wrapper.wrap_answer(query, results[method][1])
                         print(f"llm res: {llm}")
@@ -84,8 +83,9 @@ class Agent:
                         if results.get("crowd") is not None and type(results["crowd"]) is not str and results["crowd"][0] == True:
                             answer_technique = "crowd"
                             ans += " " + results["crowd"][1]
-                        
-                        ans += "\n\nThis answer is of type: " + answer_technique
+
+                        if answer_technique is not None:
+                            ans += "\n\nThis answer is of type: " + answer_technique
 
                         print(ans)
                         return ans

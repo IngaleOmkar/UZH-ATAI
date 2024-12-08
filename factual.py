@@ -19,45 +19,56 @@ class FactualResponder(Responder):
         tag_mlp, uri_mlp = self.mlp_intent_classifier.classify_query(query)
         tag_emb, uri_emb = self.emb_intent_classifier.classify_query(" ".join(query.split(entities[0])))
 
+        print("MLP: ", tag_mlp, uri_mlp)
+        print("EMB: ", tag_emb, uri_emb)
+
         if(len(entities) == 0):
             return (False, "I'm sorry, I couldn't understand the query.")
         else:
             en_uri = self.label_to_uri[entities[0]]
+            print("Entities: ", entities)
 
-            if(tag_mlp == tag_emb):
-                # both models agree
-                try:
-                    if(tag_mlp in ["rating", "revenue", "budget", "release_date"] ):
-                        return (True, self.triplets[(en_uri, uri_mlp)][0])
-                    else:
-                        ans = self.triplets[(en_uri, uri_mlp)]
-                        ans_labels = [self.uri_to_label[label] for label in ans]
-                        return (True, ans_labels[0])
-                except:
-                    pass
             
-            
-            if tag_mlp != tag_emb:
-                # models disagree,  try embedding model first
-                try:
-                    if(tag_emb in ["rating", "revenue", "budget", "release_date"] ):
-                        return (True, self.triplets[(en_uri, uri_emb)][0])
-                    else:
-                        ans = self.triplets[(en_uri, uri_emb)]
-                        ans_labels = [self.uri_to_label[label] for label in ans]
-                        return (True, ans_labels[0])
-                except:
-                    pass
+            # both models agree
+            try:
+                ans = self.triplets[(en_uri, uri_emb)]
+                print("ans", ans)
+                print(type(ans))
+                if type(ans) == str:
+                    if ans in self.uri_to_label:
+                        return (True, self.uri_to_label[ans])
+                    return (True, ans)
+                else:
+                    answer_string = ""
+                    for uri in ans:
+                        if uri in self.uri_to_label:
+                            print(answer_string)
+                            answer_string += self.uri_to_label[uri] + ", "
+                        else:
+                            answer_string += uri + ", "
+                    return (True, answer_string[:-2])
+            except:
+                pass
 
-                # if embedding model fails, try mlp model
-                try:
-                    if(tag_mlp in ["rating", "revenue", "budget", "release_date"] ):
-                        return (True, self.triplets[(en_uri, uri_mlp)][0])
-                    else:
-                        ans = self.triplets[(en_uri, uri_mlp)]
-                        ans_labels = [self.uri_to_label[label] for label in ans]
-                        return (True, ans_labels[0])
-                except:
-                    pass
+            # if embedding model fails, try mlp model
+            try:
+                ans = self.triplets[(en_uri, uri_mlp)]
+                print("ans", ans)
+                print(type(ans))
+                if type(ans) == str:
+                    if ans in self.uri_to_label:
+                        return (True, self.uri_to_label[ans])
+                    return (True, ans)
+                else:
+                    answer_string = ""
+                    for uri in ans:
+                        if uri in self.uri_to_label:
+                            print(answer_string)
+                            answer_string += self.uri_to_label[uri] + ", "
+                        else:
+                            answer_string += uri + ", "
+                    return (True, answer_string[:-2])
+            except:
+                pass
 
             return (False, "I'm sorry, I couldn't find the answer to your question.")
