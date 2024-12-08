@@ -38,7 +38,7 @@ class DataRepository:
             self.graph = rdflib.Graph().parse('data/14_graph.nt', format='turtle')
 
         print("========== Loading data for factual QA ==========")
-        self.triplets, self.uri_to_label, self.label_to_uri, self.label_list = pickle.load(open("data/formatted_data.pkl", "rb"))
+        self.triplets, self.uri_to_label, self.label_to_uri, self.label_list = pickle.load(open("data/formatted_data_updated.pkl", "rb"))
         with open('data/id2tag.json') as json_file:
             self.id2label = json.load(json_file)
 
