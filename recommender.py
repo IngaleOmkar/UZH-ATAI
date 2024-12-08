@@ -136,7 +136,7 @@ class RecommendationResponder(Responder):
         return lbls
 
     def answer_query(self, query):
-        entities = self.entity_extractor.get_guaranteed_entities(query)
+        entities = self.entity_extractor.get_guaranteed_entities(query, max_gap=1)
         print(f"Identified entities: {entities}")
 
         title_entities = []
