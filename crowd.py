@@ -11,9 +11,6 @@ class CrowdsourceResoponder(Responder):
 
         self.crowd_data = data_repository.crowd_data
 
-        # new intent classifier with additional categories
-        self.intent_classifier = EmbeddingBasedIntentClassifier(data_repository)
-
         for batch_id, batch in self.crowd_data.items():
             for task_id, task in batch['tasks'].items():
                 ent_rel_tuple = (task['Entity'], task['Relation'])

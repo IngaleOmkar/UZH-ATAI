@@ -122,7 +122,14 @@ class Agent:
                 for method in ["factual", "embedding"]:
                     if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
                         print(f"results: {results[method]}")
-                        llm = self.answer_wrapper.wrap_answer(query, results[method][1])
+                        if type(results[method][1]) is list or type(results[method][1]) is tuple:
+                            list_ans = results[method][1]
+                            intermidiate_ans = ""
+                            for i in range(len(list_ans)):
+                                intermidiate_ans += list_ans[i] + ", "
+                            llm = self.answer_wrapper.wrap_answer(query, intermidiate_ans)
+                        else: 
+                            llm = self.answer_wrapper.wrap_answer(query, results[method][1])
                         print(f"llm res: {llm}")
                         if llm[0]:
                             ans = llm[1].content
@@ -158,7 +165,6 @@ class Agent:
             answer_string += "I think you might like "
             answer_string += FormatHelper.array_to_sentence(results)
             answer_string += ", " + justification + "."
-            # answer_string = self.answer_wrapper.wrap_answer(query, answer_string).content
         except Exception as e:
             print(e)
             answer_string = "I am sorry, I cannot answer your question."
@@ -168,18 +174,19 @@ class Agent:
     def answer_factual(self, query):
         try:
             results = self.factual.answer_query(query)
-            # if results[0]:
-            #     answer_string = results[1] #self.answer_wrapper.wrap_answer(query, results[1]).content
-            # print("returned fatcual: ", answer_string)
-            print(f"fac ans: {results}")
-            return results
+            if results[0]:
+                answer_string = results[1] 
+            print("returned fatcual: ", answer_string)
+            return (True, answer_string)
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
 
     def answer_embedding(self, query):
         try:
             results = self.embeddings.answer_query(query)
-            return results
+            answer_string = results[1]
+            print("returned embedding: ", answer_string)
+            return (True, answer_string)
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
     
@@ -199,8 +206,10 @@ class Agent:
     def answer_crowd(self, query):
         try:
             results = self.crowd.answer_query(query)
-            print(f"crowd ans: {results}")
-            return results
+            if(results[0]):
+                answer_string = results[1] 
+                print("returned crowd: ", answer_string)
+                return (True, answer_string)
         except Exception as e:
             return (False, "I am very sorry, but no answer was found.")
 

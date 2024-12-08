@@ -67,6 +67,9 @@ class Agent:
             # Return results based on priority order
             for method in ["crowd", "factual", "embedding"]:
                 if results.get(method) is not None and type(results[method]) is not str and results[method][0] == True:
+                    if method == "crowd":
+                        # Just return the answer as is
+                        return results[method][1]
                     ans = ""
                     if type(results[method][1]) is list or type(results[method][1]) is tuple:
                         list_ans = results[method][1]
@@ -79,7 +82,6 @@ class Agent:
                     if ans[0]:
                         return ans[1].content
                     return ans[1]
-                    # return results[method][1]
 
             # If no suitable answer is found, return None or a default response
             return "No suitable answer was found."
@@ -100,8 +102,6 @@ class Agent:
             answer_string += "I think you might like "
             answer_string += FormatHelper.array_to_sentence(results)
             answer_string += ", " + justification + "."
-            # answer_string = self.answer_wrapper.wrap_answer(query, answer_string).content
-            print("returning recommendation: ", answer_string)
         except Exception as e:
             print(e)
             answer_string = "I am sorry, I cannot answer your question."
@@ -112,7 +112,7 @@ class Agent:
         try:
             results = self.factual.answer_query(query)
             if results[0]:
-                answer_string = results[1] #self.answer_wrapper.wrap_answer(query, results[1]).content
+                answer_string = results[1] 
             print("returned fatcual: ", answer_string)
             return (True, answer_string)
         except Exception as e:
@@ -121,9 +121,7 @@ class Agent:
     def answer_embedding(self, query):
         try:
             results = self.embeddings.answer_query(query)
-            answer_string = ""
-            for result in results[1]:
-                answer_string += result + " \n"
+            answer_string = results[1]
             print("returned embedding: ", answer_string)
             return (True, answer_string)
         except Exception as e:
@@ -146,7 +144,7 @@ class Agent:
         try:
             results = self.crowd.answer_query(query)
             if(results[0]):
-                answer_string = results[1] #self.answer_wrapper.wrap_answer(query, results[1]).content
+                answer_string = results[1] 
                 print("returned crowd: ", answer_string)
                 return (True, answer_string)
         except Exception as e:
