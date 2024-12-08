@@ -3,6 +3,23 @@ import numpy as np
 import pandas as pd
 import json
 
+
+def get_mode(values):
+    occurrences = {}
+    for item in values:
+        if (isinstance(item, float) and np.isnan(item)):
+            continue
+        occurrences[item] = occurrences.get(item, 0) + 1
+    max_value = max(occurrences.values())
+    print(occurrences)
+    candidates = [key for key, value in occurrences.items() if value == max_value]
+    for candidate in candidates:
+        if (candidate.startswith("Q") or candidate.startswith("P")):
+            return candidate
+        
+    return candidates[0]
+
+
 def evaluate_crowd_data(input_path, output_path, triplet_path):
     data = pd.read_csv(input_path, sep="\t")
 
@@ -40,16 +57,18 @@ def evaluate_crowd_data(input_path, output_path, triplet_path):
             if (task_obj['Majority Element'] != 1.0):
                 if (len(task_row['FixPosition'].mode()) > 0 and len(task_row['FixValue'].mode()) > 0):
                     position = task_row['FixPosition'].mode()[0]
-                    value = task_row['FixValue'].mode()[0]
+                    value = get_mode(task_row['FixValue'])
                     if (position == "Subject"):
                         task_obj['Entity'] = value if value.startswith("wd:") else "wd:" + value
                     elif (position == "Predicate"):
                         task_obj['Relation'] =  value if value.startswith("wdt:") else "wdt:" + value
-                    else:
+                    elif (position == "Object"):
                         task_obj['Answer'] = "wd:" + value if value.startswith("Q") else value
 
                     task_obj['Majority Element'] = 1.0
+                    print(og_triplet)
                     new_triplet = (task_obj['Entity'], task_obj['Relation'], task_obj['Answer'])
+                    print(new_triplet)
                     triplets["update"].append((og_triplet, new_triplet))
                 else:
                     triplets["delete"].append(og_triplet)

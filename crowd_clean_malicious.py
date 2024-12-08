@@ -61,6 +61,9 @@ def invalid_answer(assignmentId, data):
     wtis = data.loc[data["AssignmentId"] == assignmentId, "WorkTimeInSeconds"].values[0]
     reputation = data.loc[data["AssignmentId"] == assignmentId, "LifetimeApprovalRate"].values[0]
     rep_val = float(reputation.replace('%', ''))
+    pos = data.loc[data["AssignmentId"] == assignmentId, "FixPosition"].values[0] 
+    val_pos = (isinstance(pos, float) and np.isnan(pos)) or pos in ["Subject", "Predicate", "Object"]
+    print(val_pos)
     return wtis <= 10 or rep_val < 50
 
 def clean_malicious(data_path, majority_path, output_path):
