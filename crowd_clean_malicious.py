@@ -1,4 +1,3 @@
-from statsmodels.stats.inter_rater import fleiss_kappa
 import numpy as np
 import pandas as pd
 import json
