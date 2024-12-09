@@ -131,6 +131,8 @@ class Agent:
                         else:
                             ans = results[method][1]
 
+                        answer_technique = method
+
                         print(f"ans: {ans}")
 
                         if results.get("crowd") is not None and type(results["crowd"]) is not str and results["crowd"][0] == True:
