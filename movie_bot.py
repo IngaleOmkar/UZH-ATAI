@@ -82,7 +82,13 @@ class Agent:
 
                     # Implement your agent here #
 
-                    room.post_messages(f"Received your reaction: '{reaction.type}' ")
+                    # room.post_messages(f"Received your reaction: '{reaction.type}' ")
+                    if (reaction.type == "THUMBS_UP"):
+                        room.post_messages("Appreciate your positive feedback! If you have any more questions, feel free to ask.")
+                    elif (reaction.type == "THUMBS_DOWN"):
+                        room.post_messages("I am sorry to receive a thumbs down. Would you mind rephrashing your question so I can try again?")
+                    elif (reaction.type == "STAR"):
+                        room.post_messages("Glad you liked my answer :) If you have any more questions, feel free to ask.")
                     room.mark_as_processed(reaction)
 
             time.sleep(listen_freq)
