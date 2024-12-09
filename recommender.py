@@ -168,7 +168,7 @@ class RecommendationResponder(Responder):
                 # return self.get_external_movies(query), f"because, according to our external data, these are popular movies of the genre {genre}"
             else:
                 return lbls, f"because these are popular movies of the genre {genre}"
-        elif (len(actor_entities) > 0 and actor_entities[0] in self.lbl2ent): # ACTOR
+        elif (len(actor_entities) > 0 and actor_entities[0] in self.lbl2ent and len(title_entities) == 0): # ACTOR
             ents = [self.lbl2ent[actor] for actor in actor_entities if actor in self.lbl2ent]
             ents = [ent.split("/")[-1] for ent in ents]
             results = self.actor_query(ents)
