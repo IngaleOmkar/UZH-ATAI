@@ -16,8 +16,8 @@ You can also set up the environment using the `requirements.txt` file. An exampl
 
 ```bash
 conda create -n "your_env_name" python=3.10
-conda actiavte your_bot_name
-cd path/to/your/cloned/repository/UZH-ATAI
+conda actiavte your_env_name
+cd path/to/your/cloned/repository/
 pip install -r requirements.txt
 ```
 
